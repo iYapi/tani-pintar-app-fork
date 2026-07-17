@@ -11,7 +11,7 @@ export default function VerifyOtpPage() {
   const [role, setRole] = useState("");
   const [fullName, setFullName] = useState("");
   
-  const [otp, setOtp] = useState(["", "", "", ""]);
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [timer, setTimer] = useState(59);
   const [isResending, setIsResending] = useState(false);
   const [error, setError] = useState("");
@@ -19,6 +19,8 @@ export default function VerifyOtpPage() {
   const [isSuccess, setIsSuccess] = useState(false);
 
   const inputRefs = [
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
     useRef<HTMLInputElement>(null),
     useRef<HTMLInputElement>(null),
     useRef<HTMLInputElement>(null),
@@ -60,8 +62,8 @@ export default function VerifyOtpPage() {
     newOtp[index] = value;
     setOtp(newOtp);
 
-    // Auto-focus ke input berikutnya
-    if (value !== "" && index < 3) {
+    // Auto-focus ke input berikutnya (total 6 input, max indeks 5)
+    if (value !== "" && index < 5) {
       inputRefs[index + 1].current?.focus();
     }
   };
@@ -83,7 +85,7 @@ export default function VerifyOtpPage() {
     await new Promise((resolve) => setTimeout(resolve, 1500));
     setTimer(59);
     setIsResending(false);
-    setOtp(["", "", "", ""]);
+    setOtp(["", "", "", "", "", ""]);
     inputRefs[0].current?.focus();
   };
 
@@ -92,16 +94,22 @@ export default function VerifyOtpPage() {
     e.preventDefault();
     const code = otp.join("");
     
-    if (code.length < 4) {
-      setError("Silakan masukkan 4 digit kode verifikasi");
+    if (code.length < 6) {
+      setError("Silakan masukkan 6 digit kode verifikasi");
       return;
     }
 
     setIsVerifying(true);
     setError("");
 
-    // Simulasi verifikasi (kode sukses bebas atau '1234')
+    // Simulasi verifikasi (hanya menerima kode '123456' sesuai api contract)
     await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    if (code !== "123456") {
+      setError("Kode OTP salah. Gunakan kode simulasi '123456'.");
+      setIsVerifying(false);
+      return;
+    }
 
     setIsVerifying(false);
     setIsSuccess(true);
@@ -164,7 +172,7 @@ export default function VerifyOtpPage() {
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
               >
-                <div className="text-center mb-6">
+                <div className="text-center mb-4">
                   <span className="inline-block text-sm font-semibold bg-primary/5 text-primary px-3 py-1.5 rounded-full border border-primary/10">
                     {formatPhoneNumber(phoneNumber)}
                   </span>
@@ -176,12 +184,19 @@ export default function VerifyOtpPage() {
                   </button>
                 </div>
 
+                {/* Banner Simulasi WhatsApp OTP */}
+                <div className="bg-[#dcf8c6]/30 text-[#075e54] border border-[#dcf8c6] text-[11px] p-3.5 rounded-2xl text-center leading-relaxed font-semibold mb-6 flex flex-col gap-1 items-center">
+                  <span className="text-[9px] text-[#128c7e] font-black uppercase tracking-wider">Simulasi Notifikasi WA Bot</span>
+                  <span>Kode OTP Tani Pintar Anda: <span className="font-extrabold text-xs underline text-foreground bg-white/70 px-2 py-0.5 rounded">123456</span></span>
+                  <span className="text-[9px] text-[#128c7e]/80">Silakan masukkan kode tersebut di bawah.</span>
+                </div>
+
                 <form onSubmit={handleVerify} className="space-y-6">
                   <div>
                     <label className="block text-center text-sm font-medium text-foreground/85 mb-4">
-                      Masukkan 4 Digit Kode OTP
+                      Masukkan 6 Digit Kode OTP
                     </label>
-                    <div className="flex justify-center gap-4">
+                    <div className="flex justify-center gap-2">
                       {otp.map((digit, index) => (
                         <input
                           key={index}
@@ -193,7 +208,7 @@ export default function VerifyOtpPage() {
                           value={digit}
                           onChange={(e) => handleChange(e.target.value, index)}
                           onKeyDown={(e) => handleKeyDown(e, index)}
-                          className="w-14 h-14 text-center text-2xl font-bold border-2 rounded-2xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all shadow-sm"
+                          className="w-11 h-11 sm:w-14 sm:h-14 text-center text-xl sm:text-2xl font-bold border-2 rounded-2xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all shadow-sm min-h-0"
                         />
                       ))}
                     </div>
