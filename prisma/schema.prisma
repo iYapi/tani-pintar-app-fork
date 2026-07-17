@@ -1,0 +1,452 @@
+// =====================================================================
+// Tani Pintar — Prisma Schema
+// Diturunkan dari: SRS Tani Pintar v1 — Section 5 (Model Data) & FR-01..19
+// Database: PostgreSQL
+// =====================================================================
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ---------------------------------------------------------------------
+// ENUMS
+// ---------------------------------------------------------------------
+
+enum UserRole {
+  PETANI
+  BUYER
+  ADMIN
+}
+
+enum BuyerBusinessType {
+  PASAR_INDUK
+  KOPERASI
+  RESTORAN
+  PABRIK_OLAHAN
+  LAINNYA
+}
+
+enum PlantingPhase {
+  PERSIAPAN_LAHAN
+  PENANAMAN
+  PEMELIHARAAN
+  PANEN
+  PASCA_PANEN
+}
+
+enum HarvestPlanStatus {
+  DRAFT
+  PLANNED
+  READY
+  HARVESTED
+  CANCELLED
+}
+
+enum DemandListingStatus {
+  OPEN
+  FULFILLED
+  CLOSED
+  CANCELLED
+}
+
+enum SaleListingStatus {
+  OPEN
+  MATCHED
+  CLOSED
+  CANCELLED
+}
+
+enum MatchStatus {
+  PROPOSED
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+enum RecommendationType {
+  HARVEST_TIMING
+  SELL_DESTINATION
+  PRESERVATION
+  WASTE_RECOVERY
+}
+
+enum TransactionStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum NotificationStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  FAILED
+}
+
+enum NotificationChannel {
+  WHATSAPP
+  SMS
+  EMAIL
+}
+
+enum NotificationType {
+  OVERSUPPLY_ALERT
+  PRICE_DROP_ALERT
+  MATCH_PROPOSAL
+  QUICK_QUERY_RESPONSE
+  VERIFICATION_OTP
+  SYSTEM
+}
+
+// ---------------------------------------------------------------------
+// USER & AUTH
+// ---------------------------------------------------------------------
+
+model User {
+  id              String    @id @default(cuid())
+  email           String?   @unique
+  phoneNumber     String    @unique
+  passwordHash    String
+  role            UserRole  @default(PETANI)
+  isActive        Boolean   @default(true)
+  isPhoneVerified Boolean   @default(false)
+  lastLoginAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  farmerProfile FarmerProfile?
+  buyerProfile  BuyerProfile?
+  notifications NotificationLog[]
+
+  @@index([role])
+  @@index([isActive])
+}
+
+// ---------------------------------------------------------------------
+// FARMER PROFILE & LAND (FR-01, FR-02, FR-08)
+// ---------------------------------------------------------------------
+
+model FarmerProfile {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  fullName         String
+  locationName     String?
+  latitude         Float?
+  longitude        Float?
+  primaryCommodity String?
+  contactPhone     String?
+  isVerified       Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user                 User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lands                Land[]
+  harvestPlans         HarvestPlan[]
+  saleListings         SaleListing[]
+  matchesAsFarmer      Match[]
+  transactionsAsFarmer Transaction[]
+
+  @@index([isVerified])
+}
+
+model Land {
+  id              String        @id @default(cuid())
+  farmerProfileId String
+  name            String
+  commodityType   String
+  areaSize        Float
+  areaUnit        String        @default("hektar")
+  plantingPhase   PlantingPhase @default(PERSIAPAN_LAHAN)
+  latitude        Float?
+  longitude       Float?
+  address         String?
+  photoUrl        String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  farmerProfile FarmerProfile @relation(fields: [farmerProfileId], references: [id], onDelete: Cascade)
+  harvestPlans  HarvestPlan[]
+
+  @@index([farmerProfileId])
+  @@index([commodityType])
+}
+
+// ---------------------------------------------------------------------
+// BUYER PROFILE (FR-09)
+// ---------------------------------------------------------------------
+
+model BuyerProfile {
+  id                 String            @id @default(cuid())
+  userId             String            @unique
+  businessName       String
+  businessType       BuyerBusinessType @default(LAINNYA)
+  locationName       String?
+  latitude           Float?
+  longitude          Float?
+  capacityAbsorption Float? // volume serap per bulan (unit mengikuti komoditas)
+  capacityUnit       String?
+  contactPhone       String?
+  isVerified         Boolean           @default(false)
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  user                User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  demandListings      DemandListing[]
+  matchesAsBuyer      Match[]
+  transactionsAsBuyer Transaction[]
+
+  @@index([businessType])
+  @@index([isVerified])
+}
+
+// ---------------------------------------------------------------------
+// HARVEST PLANS (FR-03)
+// ---------------------------------------------------------------------
+
+model HarvestPlan {
+  id                 String            @id @default(cuid())
+  farmerProfileId    String
+  landId             String?
+  commodity          String
+  estimatedVolume    Float
+  volumeUnit         String            @default("kg")
+  readyToHarvestDate DateTime
+  actualVolume       Float?
+  status             HarvestPlanStatus @default(DRAFT)
+  notes              String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  farmerProfile   FarmerProfile    @relation(fields: [farmerProfileId], references: [id], onDelete: Cascade)
+  land            Land?            @relation(fields: [landId], references: [id], onDelete: SetNull)
+  saleListings    SaleListing[]
+  recommendations Recommendation[]
+
+  @@index([farmerProfileId])
+  @@index([status])
+  @@index([readyToHarvestDate])
+  @@index([commodity])
+}
+
+// ---------------------------------------------------------------------
+// EXTERNAL DATA CACHES (FR-19)
+// ---------------------------------------------------------------------
+
+// Cache harga harian per komoditas per wilayah (BAPANAS/PIHPS)
+model PriceSnapshot {
+  id           String   @id @default(cuid())
+  commodity    String
+  region       String
+  province     String?
+  pricePerUnit Float
+  currency     String   @default("IDR")
+  unit         String   @default("kg")
+  snapshotDate DateTime
+  source       String   @default("BAPANAS")
+  createdAt    DateTime @default(now())
+
+  @@unique([commodity, region, snapshotDate])
+  @@index([commodity, snapshotDate])
+  @@index([region, snapshotDate])
+}
+
+// Cache data cuaca per wilayah (BMKG)
+model WeatherSnapshot {
+  id           String   @id @default(cuid())
+  region       String
+  latitude     Float?
+  longitude    Float?
+  temperature  Float? // Celsius
+  humidity     Float? // %
+  rainfall     Float? // mm
+  windSpeed    Float? // km/h
+  condition    String? // cerah, berawan, hujan, dll
+  forecastDate DateTime
+  source       String   @default("BMKG")
+  createdAt    DateTime @default(now())
+
+  @@unique([region, forecastDate])
+  @@index([region, forecastDate])
+}
+
+// Referensi umur simpan per komoditas (FAO)
+model CommodityShelfLife {
+  id                        String   @id @default(cuid())
+  commodity                 String   @unique
+  ambientShelfLifeDays      Int?
+  refrigeratedShelfLifeDays Int?
+  recommendedStorage        String?
+  source                    String   @default("FAO")
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------
+// LISTINGS (FR-10, FR-11)
+// ---------------------------------------------------------------------
+
+// Kebutuhan komoditas dari buyer
+model DemandListing {
+  id              String              @id @default(cuid())
+  buyerProfileId  String
+  commodity       String
+  volume          Float
+  unit            String              @default("kg")
+  locationName    String?
+  latitude        Float?
+  longitude       Float?
+  maxPricePerUnit Float?
+  deadline        DateTime
+  description     String?
+  status          DemandListingStatus @default(OPEN)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  buyerProfile BuyerProfile @relation(fields: [buyerProfileId], references: [id], onDelete: Cascade)
+  matches      Match[]
+
+  @@index([buyerProfileId])
+  @@index([status])
+  @@index([commodity, deadline])
+}
+
+// Penawaran komoditas dari petani (otomatis saat oversupply terdeteksi / manual)
+model SaleListing {
+  id              String            @id @default(cuid())
+  farmerProfileId String
+  harvestPlanId   String?
+  commodity       String
+  volume          Float
+  unit            String            @default("kg")
+  pricePerUnit    Float?
+  locationName    String?
+  latitude        Float?
+  longitude       Float?
+  isOversupply    Boolean           @default(false)
+  status          SaleListingStatus @default(OPEN)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  farmerProfile FarmerProfile @relation(fields: [farmerProfileId], references: [id], onDelete: Cascade)
+  harvestPlan   HarvestPlan?  @relation(fields: [harvestPlanId], references: [id], onDelete: SetNull)
+  matches       Match[]
+
+  @@index([farmerProfileId])
+  @@index([status])
+  @@index([commodity, status])
+  @@index([isOversupply])
+}
+
+// ---------------------------------------------------------------------
+// MATCHING (FR-12)
+// ---------------------------------------------------------------------
+
+model Match {
+  id                String      @id @default(cuid())
+  saleListingId     String
+  demandListingId   String
+  score             Float // skor kelayakan 0-100
+  netMargin         Float? // margin bersih riil
+  distanceKm        Float?
+  logisticsCost     Float?
+  shelfLifeFeasible Boolean     @default(true)
+  recommendation    String?
+  status            MatchStatus @default(PROPOSED)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  saleListing     SaleListing   @relation(fields: [saleListingId], references: [id], onDelete: Cascade)
+  demandListing   DemandListing @relation(fields: [demandListingId], references: [id], onDelete: Cascade)
+  farmerProfile   FarmerProfile @relation(fields: [farmerProfileId], references: [id])
+  buyerProfile    BuyerProfile  @relation(fields: [buyerProfileId], references: [id])
+  farmerProfileId String
+  buyerProfileId  String
+  transaction     Transaction?
+
+  @@unique([saleListingId, demandListingId])
+  @@index([status])
+  @@index([farmerProfileId])
+  @@index([buyerProfileId])
+}
+
+// ---------------------------------------------------------------------
+// RECOMMENDATIONS (FR-04, FR-05, FR-06, FR-07, FR-08)
+// ---------------------------------------------------------------------
+
+model Recommendation {
+  id                  String             @id @default(cuid())
+  harvestPlanId       String
+  type                RecommendationType
+  jsonData            Json // payload terstruktur dari kalkulasi backend
+  naturalLanguageText String? // output Claude API
+  modelVersion        String?
+  isRead              Boolean            @default(false)
+  createdAt           DateTime           @default(now())
+
+  harvestPlan HarvestPlan @relation(fields: [harvestPlanId], references: [id], onDelete: Cascade)
+
+  @@index([harvestPlanId])
+  @@index([type, createdAt])
+}
+
+// ---------------------------------------------------------------------
+// TRANSACTIONS
+// ---------------------------------------------------------------------
+
+model Transaction {
+  id              String            @id @default(cuid())
+  matchId         String            @unique
+  farmerProfileId String
+  buyerProfileId  String
+  commodity       String
+  volume          Float
+  unit            String            @default("kg")
+  pricePerUnit    Float
+  totalAmount     Float
+  currency        String            @default("IDR")
+  status          TransactionStatus @default(PENDING)
+  notes           String?
+  completedAt     DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  match         Match         @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  farmerProfile FarmerProfile @relation(fields: [farmerProfileId], references: [id])
+  buyerProfile  BuyerProfile  @relation(fields: [buyerProfileId], references: [id])
+
+  @@index([status])
+  @@index([farmerProfileId])
+  @@index([buyerProfileId])
+}
+
+// ---------------------------------------------------------------------
+// NOTIFICATIONS / WHATSAPP BOT (FR-13, FR-14, FR-15)
+// ---------------------------------------------------------------------
+
+model NotificationLog {
+  id             String              @id @default(cuid())
+  userId         String
+  channel        NotificationChannel @default(WHATSAPP)
+  type           NotificationType
+  toAddress      String // nomor WA / email
+  messageContent String
+  status         NotificationStatus  @default(QUEUED)
+  externalSid    String? // Twilio message SID
+  errorMessage   String?
+  sentAt         DateTime?
+  deliveredAt    DateTime?
+  createdAt      DateTime            @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status, channel])
+  @@index([externalSid])
+}
