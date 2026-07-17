@@ -100,8 +100,14 @@ export default function VerifyOtpPage() {
     setIsVerifying(true);
     setError("");
 
-    // Simulasi verifikasi (kode sukses bebas atau '1234')
+    // Simulasi verifikasi (hanya menerima kode '1234')
     await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    if (code !== "1234") {
+      setError("Kode OTP salah. Gunakan kode simulasi '1234'.");
+      setIsVerifying(false);
+      return;
+    }
 
     setIsVerifying(false);
     setIsSuccess(true);
@@ -164,7 +170,7 @@ export default function VerifyOtpPage() {
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
               >
-                <div className="text-center mb-6">
+                <div className="text-center mb-4">
                   <span className="inline-block text-sm font-semibold bg-primary/5 text-primary px-3 py-1.5 rounded-full border border-primary/10">
                     {formatPhoneNumber(phoneNumber)}
                   </span>
@@ -174,6 +180,13 @@ export default function VerifyOtpPage() {
                   >
                     Ubah Nomor HP
                   </button>
+                </div>
+
+                {/* Banner Simulasi WhatsApp OTP */}
+                <div className="bg-[#dcf8c6]/30 text-[#075e54] border border-[#dcf8c6] text-[11px] p-3.5 rounded-2xl text-center leading-relaxed font-semibold mb-6 flex flex-col gap-1 items-center">
+                  <span className="text-[9px] text-[#128c7e] font-black uppercase tracking-wider">Simulasi Notifikasi WA Bot</span>
+                  <span>Kode OTP Tani Pintar Anda: <span className="font-extrabold text-xs underline text-foreground bg-white/70 px-2 py-0.5 rounded">1234</span></span>
+                  <span className="text-[9px] text-[#128c7e]/80">Silakan masukkan kode tersebut di bawah.</span>
                 </div>
 
                 <form onSubmit={handleVerify} className="space-y-6">
