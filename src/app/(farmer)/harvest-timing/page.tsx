@@ -12,7 +12,9 @@ import {
   Sprout,
   Scale
 } from "lucide-react";
-import { mockApi, KOMODITAS_LIST } from "@/lib/api/mockApi";
+import * as authApi from "@/lib/api/authApi";
+import * as landApi from "@/lib/api/landApi";
+import { COMMODITY_LIST } from "@/lib/api/metadataApi";
 import { harvestPlanApi } from "@/lib/api/harvestPlanApi";
 import { LahanProfile, UserProfile, VolumeUnit } from "@/types";
 
@@ -27,21 +29,21 @@ export default function HarvestTimingPage() {
   const [estimatedVolume, setEstimatedVolume] = useState<string>("");
   const [volumeUnit, setVolumeUnit] = useState<VolumeUnit>("kg");
   const [readyToHarvestDate, setReadyToHarvestDate] = useState(new Date().toISOString().split("T")[0]);
-  
+
   // App State
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
 
   useEffect(() => {
-    const currentUser = mockApi.getCurrentUser();
+    const currentUser = authApi.getCurrentUser();
     if (currentUser) {
       if (currentUser.role !== "farmer") {
         router.push("/dashboard");
         return;
       }
       setUser(currentUser);
-      
-      const userLahan = mockApi.getLahanList();
+
+      const userLahan = landApi.getLandList();
       setLahanList(userLahan);
       if (userLahan.length > 0) {
         setSelectedLahanId(userLahan[0].id);
@@ -90,7 +92,7 @@ export default function HarvestTimingPage() {
   if (isLoading) return null;
 
   const selectedLahan = lahanList.find(l => l.id === selectedLahanId);
-  const commodityInfo = selectedLahan ? KOMODITAS_LIST.find(k => k.id === selectedLahan.komoditas) : null;
+  const commodityInfo = selectedLahan ? COMMODITY_LIST.find(k => k.id === selectedLahan.komoditas) : null;
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-20">
@@ -155,7 +157,7 @@ export default function HarvestTimingPage() {
                     className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 py-3 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-colors"
                   >
                     {lahanList.map((lahan) => {
-                      const km = KOMODITAS_LIST.find(k => k.id === lahan.komoditas);
+                      const km = COMMODITY_LIST.find(k => k.id === lahan.komoditas);
                       return (
                         <option key={lahan.id} value={lahan.id}>
                           {km?.icon} {lahan.namaLahan} ({km?.label})

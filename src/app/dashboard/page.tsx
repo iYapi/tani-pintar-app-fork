@@ -26,7 +26,11 @@ import {
   ChevronRight,
   Activity,
 } from "lucide-react";
-import { mockApi, KOMODITAS_LIST, FASE_TANAM_LIST } from "@/lib/api/mockApi";
+import * as authApi from "@/lib/api/authApi";
+import * as landApi from "@/lib/api/landApi";
+import { getWeatherByCoords } from "@/lib/api/weatherApi";
+import { getPriceTrendByCommodity } from "@/lib/api/priceApi";
+import { COMMODITY_LIST, GROWTH_PHASE_LIST } from "@/lib/api/metadataApi";
 import { harvestPlanApi } from "@/lib/api/harvestPlanApi";
 import { LahanProfile, Komoditas, FaseTanam, UserProfile, HarvestPlan, Recommendation } from "@/types";
 import PriceChart from "@/components/charts/PriceChart";
@@ -94,10 +98,10 @@ export default function DashboardPage() {
   // Muat status user dan lahan saat inisialisasi
   const loadData = () => {
     setIsLoading(true);
-    const currentUser = mockApi.getCurrentUser();
+    const currentUser = authApi.getCurrentUser();
     if (currentUser) {
       setUser(currentUser);
-      const list = mockApi.getLahanList();
+      const list = landApi.getLandList();
       setLahanList(list);
       
       const targetActiveIndex = Math.min(activeLahanIndex, list.length - 1 >= 0 ? list.length - 1 : 0);
@@ -203,7 +207,7 @@ export default function DashboardPage() {
       // Simulasikan delay network
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      mockApi.createLahan({
+      landApi.createLand({
         namaLahan,
         luasLahan: parseFloat(luasLahan),
         komoditas,
@@ -400,7 +404,7 @@ export default function DashboardPage() {
                         Pilih Komoditas Utama
                       </label>
                       <div className="grid grid-cols-2 gap-2.5">
-                        {KOMODITAS_LIST.map((item) => (
+                        {COMMODITY_LIST.map((item) => (
                           <button
                             type="button"
                             key={item.id}
@@ -431,7 +435,7 @@ export default function DashboardPage() {
                         }
                         className="w-full px-4 py-2.5 rounded-2xl border border-border bg-background/50 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[44px]"
                       >
-                        {FASE_TANAM_LIST.map((item) => (
+                        {GROWTH_PHASE_LIST.map((item) => (
                           <option key={item.id} value={item.id}>
                             {item.label} — {item.desc}
                           </option>
@@ -542,8 +546,8 @@ export default function DashboardPage() {
                         Komoditas:
                       </span>
                       <span className="text-xs font-bold text-foreground capitalize flex items-center gap-1">
-                        {KOMODITAS_LIST.find((k) => k.id === komoditas)?.icon}
-                        {KOMODITAS_LIST.find((k) => k.id === komoditas)?.label}
+                        {COMMODITY_LIST.find((k) => k.id === komoditas)?.icon}
+                        {COMMODITY_LIST.find((k) => k.id === komoditas)?.label}
                       </span>
                     </div>
 
@@ -552,7 +556,7 @@ export default function DashboardPage() {
                         Fase Tanam:
                       </span>
                       <span className="text-xs font-bold text-foreground">
-                        {FASE_TANAM_LIST.find((f) => f.id === faseTanam)?.label}
+                        {GROWTH_PHASE_LIST.find((f) => f.id === faseTanam)?.label}
                       </span>
                     </div>
 
@@ -648,10 +652,10 @@ export default function DashboardPage() {
                 className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-none scroll-smooth"
               >
                 {lahanList.map((lahan) => {
-                  const km = KOMODITAS_LIST.find(
+                  const km = COMMODITY_LIST.find(
                     (k) => k.id === lahan.komoditas,
                   );
-                  const ft = FASE_TANAM_LIST.find(
+                  const ft = GROWTH_PHASE_LIST.find(
                     (f) => f.id === lahan.faseTanam,
                   );
                   return (
@@ -780,7 +784,7 @@ export default function DashboardPage() {
                     </label>
                     <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
                       {lahanList.map((lahan, idx) => {
-                        const km = KOMODITAS_LIST.find(
+                        const km = COMMODITY_LIST.find(
                           (k) => k.id === lahan.komoditas,
                         );
                         return (
@@ -819,11 +823,11 @@ export default function DashboardPage() {
                 {(() => {
                   const activeLahan =
                     lahanList[activeLahanIndex] || lahanList[0];
-                  const weather = mockApi.getWeatherByCoords(
+                  const weather = getWeatherByCoords(
                     activeLahan.koordinat.lat,
                     activeLahan.koordinat.lng,
                   );
-                  const price = mockApi.getPriceTrendByCommodity(
+                  const price = getPriceTrendByCommodity(
                     activeLahan.komoditas,
                   );
 
@@ -1064,7 +1068,7 @@ export default function DashboardPage() {
                 onClick={() => {
                   // Switch role to farmer to test onboarding wizard
                   const updated: UserProfile = { ...user, role: "farmer" };
-                  mockApi.saveCurrentUser(updated);
+                  authApi.saveCurrentUser(updated);
                   loadData();
                 }}
                 className="w-full py-3.5 px-4 rounded-2xl bg-primary text-primary-foreground hover:bg-primary/95 font-bold text-xs transition-all min-h-[44px]"

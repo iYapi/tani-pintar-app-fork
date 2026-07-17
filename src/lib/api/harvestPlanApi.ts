@@ -1,10 +1,11 @@
 import { HarvestPlan, Recommendation, Komoditas, VolumeUnit } from "@/types";
 import { STORAGE_KEYS } from "@/data/constants";
+import { getCurrentUser } from "./authApi";
 
 export const harvestPlanApi = {
   // 1. Create Harvest Plan
   createHarvestPlan: (planData: { landId?: string | null; commodity: Komoditas | string; estimatedVolume: number; volumeUnit: VolumeUnit; readyToHarvestDate: string; notes?: string }): HarvestPlan => {
-    const user = mockApi.getCurrentUser();
+    const user = getCurrentUser();
     if (!user) throw new Error("Unauthorized");
 
     const newPlan: HarvestPlan = {
@@ -34,13 +35,13 @@ export const harvestPlanApi = {
   // 2. Trigger Recommendations (Mock Async Job)
   triggerRecommendations: (harvestPlanId: string): { jobId: string; status: string; estimatedCompletionAt: string } => {
     const jobId = "job-" + Math.random().toString(36).substring(2, 9);
-    
+
     if (typeof window !== "undefined") {
       setTimeout(() => {
         const plansStr = localStorage.getItem(STORAGE_KEYS.HARVEST_PLANS);
         const allPlans: HarvestPlan[] = plansStr ? JSON.parse(plansStr) : [];
         const plan = allPlans.find(p => p.id === harvestPlanId);
-        
+
         if (plan) {
           const basePrice = plan.commodity === "cabai_merah" ? 32000 : plan.commodity === "kentang" ? 16000 : 20000;
           let currentPrice = basePrice;
@@ -71,7 +72,7 @@ export const harvestPlanApi = {
               confidence: 0.85,
               projectedPriceTrend: trend
             },
-            naturalLanguageText: isOversupply 
+            naturalLanguageText: isOversupply
               ? `Terdeteksi potensi oversupply di minggu ini. Disarankan untuk menunda panen hingga ${optimalDate.toLocaleDateString("id-ID")} untuk menghindari harga anjlok.`
               : `Kondisi pasar aman. Anda dapat memanen sesuai jadwal pada ${optimalDate.toLocaleDateString("id-ID")} dengan estimasi harga yang baik.`,
             modelVersion: "rule-based-v1",
@@ -97,28 +98,28 @@ export const harvestPlanApi = {
   // 3. Get Recommendations by Plan ID
   getRecommendationsByPlanId: (harvestPlanId: string, type?: string): { data: Recommendation[] } => {
     if (typeof window === "undefined") return { data: [] };
-    
+
     const recsStr = localStorage.getItem(STORAGE_KEYS.RECOMMENDATIONS);
     const allRecs: Recommendation[] = recsStr ? JSON.parse(recsStr) : [];
-    
+
     let filtered = allRecs.filter(r => r.harvestPlanId === harvestPlanId);
     if (type) {
       filtered = filtered.filter(r => r.type === type);
     }
-    
+
     return { data: filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) };
   },
 
   // 4. Get Harvest Plans for the current user
   getHarvestPlans: (landId?: string): { data: HarvestPlan[] } => {
     if (typeof window === "undefined") return { data: [] };
-    
-    const user = mockApi.getCurrentUser();
+
+    const user = getCurrentUser();
     if (!user) return { data: [] };
 
     const plansStr = localStorage.getItem(STORAGE_KEYS.HARVEST_PLANS);
     const allPlans: HarvestPlan[] = plansStr ? JSON.parse(plansStr) : [];
-    
+
     let filtered = allPlans.filter(p => p.farmerProfileId === user.phoneNumber);
     if (landId) {
       filtered = filtered.filter(p => p.landId === landId);
