@@ -56,9 +56,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const waUrl =
-      process.env.WA_SEND_URL ||
-      "https://botgh7.expiproject.com/api/send-message";
+    const waUrl = process.env.WA_SEND_URL!;
     fetch(waUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

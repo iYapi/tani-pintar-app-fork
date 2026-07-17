@@ -1,0 +1,934 @@
+{
+  "info": {
+    "name": "Tani Pintar API",
+    "description": "Koleksi Postman untuk seluruh endpoint Tani Pintar.\n\nBase URL: http://localhost:3000\nMock Auth aktif — set MOCK_AUTH_USER_ID & MOCK_AUTH_ROLE di environment.\n\nDokumen kontrak: docs/api-contract.md",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "mock_user_petani",
+      "value": "dev-petani-001",
+      "type": "string"
+    },
+    {
+      "key": "mock_user_buyer",
+      "value": "dev-buyer-001",
+      "type": "string"
+    },
+    {
+      "key": "internal_secret",
+      "value": "dev-internal-secret-change-in-production",
+      "type": "string"
+    },
+    {
+      "key": "land_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "harvest_plan_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "demand_listing_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "sale_listing_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "match_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "phone_number",
+      "value": "628123456789",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "description": "OTP-based registration + login (dikembangkan oleh rekan).",
+      "item": [
+        {
+          "name": "POST Register (kirim OTP)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Test Petani\",\n  \"phoneNumber\": \"{{phone_number}}\",\n  \"role\": \"farmer\"\n}"
+            }
+          }
+        },
+        {
+          "name": "POST Verify OTP",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/auth/verify-otp",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "verify-otp"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"{{phone_number}}\",\n  \"otp\": \"123456\"\n}"
+            }
+          }
+        },
+        {
+          "name": "POST Login (kirim OTP)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"{{phone_number}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "POST Resend OTP",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/auth/resend-otp",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "resend-otp"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"{{phone_number}}\",\n  \"purpose\": \"REGISTER\"\n}"
+            }
+          }
+        },
+        {
+          "name": "POST Logout",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Farmers",
+      "description": "Profil petani & CRUD lahan (FR-02).\n\nSet MOCK_AUTH_ROLE=PETANI di .env sebelum test.",
+      "item": [
+        {
+          "name": "POST Create Farmer Profile",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/farmers/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "farmers", "profile"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Test Petani\",\n  \"locationName\": \"Kec. Brebes, Kabupaten Brebes\",\n  \"latitude\": -6.8703,\n  \"longitude\": 109.0398,\n  \"primaryCommodity\": \"Bawang Merah\",\n  \"contactPhone\": \"628123456789\"\n}"
+            }
+          }
+        },
+        {
+          "name": "GET My Farmer Profile",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/farmers/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "farmers", "profile"]
+            }
+          }
+        },
+        {
+          "name": "PATCH Update Farmer Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/farmers/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "farmers", "profile"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"primaryCommodity\": \"Cabai Rawit\",\n  \"locationName\": \"Kec. Brebes\"\n}"
+            }
+          }
+        },
+        {
+          "name": "POST Create Land",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/farmers/lands",
+              "host": ["{{base_url}}"],
+              "path": ["api", "farmers", "lands"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Lahan Bawang Utara\",\n  \"commodityType\": \"Bawang Merah\",\n  \"areaSize\": 0.5,\n  \"areaUnit\": \"hektar\",\n  \"plantingPhase\": \"PENANAMAN\",\n  \"latitude\": -6.871,\n  \"longitude\": 109.0401,\n  \"address\": \"Jl. Raya Brebes No. 12\"\n}"
+            }
+          }
+        },
+        {
+          "name": "GET My Lands (list)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/farmers/lands?commodityType=Bawang%20Merah&page=1&pageSize=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "farmers", "lands"],
+              "query": [
+                { "key": "commodityType", "value": "Bawang Merah", "disabled": true },
+                { "key": "plantingPhase", "value": "PENANAMAN", "disabled": true },
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Land Detail",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/farmers/lands/{{land_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "farmers", "lands", "{{land_id}}"]
+            }
+          }
+        },
+        {
+          "name": "PATCH Update Land",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/farmers/lands/{{land_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "farmers", "lands", "{{land_id}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plantingPhase\": \"PANEN\",\n  \"areaSize\": 0.6\n}"
+            }
+          }
+        },
+        {
+          "name": "DELETE Land",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/farmers/lands/{{land_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "farmers", "lands", "{{land_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Buyers",
+      "description": "Profil buyer B2B (FR-09).\n\nSet MOCK_AUTH_ROLE=BUYER & MOCK_AUTH_USER_ID=dev-buyer-001 di .env.",
+      "item": [
+        {
+          "name": "POST Create Buyer Profile",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/buyers/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "buyers", "profile"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"businessName\": \"Pasar Induk Cipinang\",\n  \"businessType\": \"PASAR_INDUK\",\n  \"locationName\": \"Jakarta Timur\",\n  \"latitude\": -6.2198,\n  \"longitude\": 106.8615,\n  \"capacityAbsorption\": 5000,\n  \"capacityUnit\": \"kg\",\n  \"contactPhone\": \"628123456789\"\n}"
+            }
+          }
+        },
+        {
+          "name": "GET My Buyer Profile",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/buyers/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "buyers", "profile"]
+            }
+          }
+        },
+        {
+          "name": "PATCH Update Buyer Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/buyers/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "buyers", "profile"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"capacityAbsorption\": 10000,\n  \"businessType\": \"KOPERASI\"\n}"
+            }
+          }
+        },
+        {
+          "name": "GET Search Buyers",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/buyers/search?businessType=PASAR_INDUK&q=Pasar&page=1&pageSize=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "buyers", "search"],
+              "query": [
+                { "key": "businessType", "value": "PASAR_INDUK", "disabled": true },
+                { "key": "commodity", "value": "", "disabled": true },
+                { "key": "q", "value": "Pasar", "disabled": true },
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "10" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Harvest Plans",
+      "description": "Rencana panen (FR-03).\n\nHarus login sebagai PETANI (mock). Buat land dulu via Farmers → POST Create Land, lalu isi `land_id` variable.",
+      "item": [
+        {
+          "name": "POST Create Harvest Plan",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/harvest-plans",
+              "host": ["{{base_url}}"],
+              "path": ["api", "harvest-plans"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"landId\": \"{{land_id}}\",\n  \"commodity\": \"Bawang Merah\",\n  \"estimatedVolume\": 1200,\n  \"volumeUnit\": \"kg\",\n  \"readyToHarvestDate\": \"2026-08-15\",\n  \"notes\": \"Tanaman 80 hari\"\n}"
+            }
+          }
+        },
+        {
+          "name": "GET My Harvest Plans (list)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/harvest-plans?status=PLANNED&commodity=Bawang%20Merah&page=1&pageSize=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "harvest-plans"],
+              "query": [
+                { "key": "status", "value": "PLANNED", "disabled": true },
+                { "key": "commodity", "value": "Bawang Merah", "disabled": true },
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Harvest Plan Detail",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/harvest-plans/{{harvest_plan_id}}?include=land",
+              "host": ["{{base_url}}"],
+              "path": ["api", "harvest-plans", "{{harvest_plan_id}}"],
+              "query": [{ "key": "include", "value": "land" }]
+            }
+          }
+        },
+        {
+          "name": "PATCH Update Harvest Plan (ready to harvest)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/harvest-plans/{{harvest_plan_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "harvest-plans", "{{harvest_plan_id}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"READY\"\n}"
+            }
+          }
+        },
+        {
+          "name": "PATCH Harvest Plan (harvested with actual volume)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/harvest-plans/{{harvest_plan_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "harvest-plans", "{{harvest_plan_id}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"HARVESTED\",\n  \"actualVolume\": 1150\n}"
+            }
+          }
+        },
+        {
+          "name": "DELETE Harvest Plan (only DRAFT/PLANNED)",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/harvest-plans/{{harvest_plan_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "harvest-plans", "{{harvest_plan_id}}"]
+            }
+          }
+        },
+        {
+          "name": "POST Trigger Recommendations (async)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/harvest-plans/{{harvest_plan_id}}/trigger-recommendations",
+              "host": ["{{base_url}}"],
+              "path": ["api", "harvest-plans", "{{harvest_plan_id}}", "trigger-recommendations"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"force\": false\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Listings - Demand",
+      "description": "Demand listing dari buyer (FR-10). Role: BUYER untuk CRUD sendiri; PETANI/ADMIN untuk browse semua.",
+      "item": [
+        {
+          "name": "POST Create Demand Listing",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/listings/demand",
+              "host": ["{{base_url}}"],
+              "path": ["api", "listings", "demand"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"commodity\": \"Bawang Merah\",\n  \"volume\": 3000,\n  \"unit\": \"kg\",\n  \"locationName\": \"Pasar Induk Cipinang\",\n  \"latitude\": -6.2198,\n  \"longitude\": 106.8615,\n  \"maxPricePerUnit\": 35000,\n  \"deadline\": \"2026-08-25\",\n  \"description\": \"Kualitas grade A, ukuran sedang\"\n}"
+            }
+          }
+        },
+        {
+          "name": "GET Browse Demand Listings (all)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/listings/demand?commodity=Bawang%20Merah&status=OPEN&page=1&pageSize=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "listings", "demand"],
+              "query": [
+                { "key": "commodity", "value": "Bawang Merah", "disabled": true },
+                { "key": "status", "value": "OPEN", "disabled": true },
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Demand Listing Detail",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/listings/demand/{{demand_listing_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "listings", "demand", "{{demand_listing_id}}"]
+            }
+          }
+        },
+        {
+          "name": "PATCH Update Demand Listing",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/listings/demand/{{demand_listing_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "listings", "demand", "{{demand_listing_id}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"volume\": 4000,\n  \"maxPricePerUnit\": 34000\n}"
+            }
+          }
+        },
+        {
+          "name": "DELETE Demand Listing (soft cancel)",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/listings/demand/{{demand_listing_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "listings", "demand", "{{demand_listing_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Listings - Sale",
+      "description": "Sale listing dari petani (FR-11). Role: PETANI untuk CRUD sendiri; BUYER/ADMIN untuk browse.",
+      "item": [
+        {
+          "name": "POST Create Sale Listing",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/listings/sale",
+              "host": ["{{base_url}}"],
+              "path": ["api", "listings", "sale"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"harvestPlanId\": \"{{harvest_plan_id}}\",\n  \"commodity\": \"Bawang Merah\",\n  \"volume\": 800,\n  \"unit\": \"kg\",\n  \"pricePerUnit\": 30000,\n  \"locationName\": \"Kec. Brebes\",\n  \"latitude\": -6.8703,\n  \"longitude\": 109.0398,\n  \"isOversupply\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "GET Browse Sale Listings (all)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/listings/sale?isOversupply=true&commodity=Bawang%20Merah&page=1&pageSize=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "listings", "sale"],
+              "query": [
+                { "key": "isOversupply", "value": "true", "disabled": true },
+                { "key": "commodity", "value": "Bawang Merah", "disabled": true },
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Sale Listing Detail",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/listings/sale/{{sale_listing_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "listings", "sale", "{{sale_listing_id}}"]
+            }
+          }
+        },
+        {
+          "name": "PATCH Update Sale Listing",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/listings/sale/{{sale_listing_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "listings", "sale", "{{sale_listing_id}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pricePerUnit\": 31000,\n  \"volume\": 750\n}"
+            }
+          }
+        },
+        {
+          "name": "DELETE Sale Listing (soft cancel)",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/listings/sale/{{sale_listing_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "listings", "sale", "{{sale_listing_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Matching",
+      "description": "Auto-matching engine (FR-12).\n\nMatch dihasilkan oleh /matching/run (stub). /matches/* untuk accept/reject/transact.",
+      "item": [
+        {
+          "name": "POST Trigger Matching Run (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/matching/run",
+              "host": ["{{base_url}}"],
+              "path": ["api", "matching", "run"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"filters\": {\n    \"commodity\": \"Bawang Merah\"\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "GET Matching Job Status",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/matching/jobs/test-job-id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "matching", "jobs", "test-job-id"]
+            }
+          }
+        },
+        {
+          "name": "GET My Matches (list)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/matches?status=PROPOSED&minScore=50&page=1&pageSize=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "matches"],
+              "query": [
+                { "key": "status", "value": "PROPOSED", "disabled": true },
+                { "key": "minScore", "value": "50", "disabled": true },
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Match Detail",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/matches/{{match_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "matches", "{{match_id}}"]
+            }
+          }
+        },
+        {
+          "name": "PATCH Accept Match",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/matches/{{match_id}}/accept",
+              "host": ["{{base_url}}"],
+              "path": ["api", "matches", "{{match_id}}", "accept"]
+            }
+          }
+        },
+        {
+          "name": "PATCH Reject Match",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/matches/{{match_id}}/reject",
+              "host": ["{{base_url}}"],
+              "path": ["api", "matches", "{{match_id}}", "reject"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Harga terlalu rendah\"\n}"
+            }
+          }
+        },
+        {
+          "name": "POST Confirm Transaction",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/matches/{{match_id}}/transaction",
+              "host": ["{{base_url}}"],
+              "path": ["api", "matches", "{{match_id}}", "transaction"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"actualVolume\": 800,\n  \"pricePerUnit\": 30000,\n  \"notes\": \"Dikirim besok pagi\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Recommendations",
+      "description": "Rekomendasi AI (FR-04..FR-08).\n\nList by harvestPlanId, mark as read, lihat riwayat.",
+      "item": [
+        {
+          "name": "GET Recommendations by Harvest Plan",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/recommendations?harvestPlanId={{harvest_plan_id}}&type=HARVEST_TIMING&page=1&pageSize=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "recommendations"],
+              "query": [
+                { "key": "harvestPlanId", "value": "{{harvest_plan_id}}" },
+                { "key": "type", "value": "HARVEST_TIMING", "disabled": true },
+                { "key": "isRead", "value": "false", "disabled": true },
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Recommendation Detail",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/recommendations/some-rec-id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "recommendations", "some-rec-id"]
+            }
+          }
+        },
+        {
+          "name": "PATCH Mark as Read",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{base_url}}/api/recommendations/some-rec-id/read",
+              "host": ["{{base_url}}"],
+              "path": ["api", "recommendations", "some-rec-id", "read"]
+            }
+          }
+        },
+        {
+          "name": "GET Recommendation History",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/recommendations/history?page=1&pageSize=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "recommendations", "history"],
+              "query": [
+                { "key": "dateFrom", "value": "2026-01-01", "disabled": true },
+                { "key": "dateTo", "value": "2026-12-31", "disabled": true },
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "10" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "description": "WhatsApp notifications (FR-13, FR-14, FR-15).\n\nWebhook untuk incoming WA. Send untuk kirim notifikasi via WA API.\nInternal endpoints dilindungi X-Internal-Secret.",
+      "item": [
+        {
+          "name": "POST Webhook (incoming WA)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/notifications/webhook",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications", "webhook"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"From\": \"{{phone_number}}\",\n  \"Body\": \"harga bawang merah\"\n}"
+            }
+          }
+        },
+        {
+          "name": "POST Send Notification (internal)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Internal-Secret", "value": "{{internal_secret}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/notifications/send",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications", "send"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{mock_user_petani}}\",\n  \"channel\": \"WHATSAPP\",\n  \"type\": \"OVERSUPPLY_ALERT\",\n  \"messageContent\": \"⚠️ Deteksi potensi oversupply bawang merah di wilayah Anda. Harga proyeksi turun 12%.\",\n  \"toAddress\": \"628123456789\"\n}"
+            }
+          }
+        },
+        {
+          "name": "POST Quick Query (internal)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Internal-Secret", "value": "{{internal_secret}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/notifications/quick-query",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications", "quick-query"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"{{phone_number}}\",\n  \"query\": \"harga bawang merah hari ini\"\n}"
+            }
+          }
+        },
+        {
+          "name": "GET Notification Log",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/notifications?status=DELIVERED&page=1&pageSize=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications"],
+              "query": [
+                { "key": "status", "value": "DELIVERED", "disabled": true },
+                { "key": "channel", "value": "WHATSAPP", "disabled": true },
+                { "key": "type", "value": "", "disabled": true },
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "10" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "description": "Dashboard admin & manajemen pengguna (FR-16, FR-17).\n\nRole: ADMIN only. Set MOCK_AUTH_ROLE=ADMIN di .env.",
+      "item": [
+        {
+          "name": "GET Analytics Overview",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/admin/analytics/overview",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "analytics", "overview"],
+              "query": [
+                { "key": "region", "value": "", "disabled": true },
+                { "key": "province", "value": "", "disabled": true },
+                { "key": "dateFrom", "value": "", "disabled": true },
+                { "key": "dateTo", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Oversupply Heatmap",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/admin/analytics/oversupply-heatmap",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "analytics", "oversupply-heatmap"]
+            }
+          }
+        },
+        {
+          "name": "GET Commodity Trend (placeholder)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/admin/analytics/commodity-trend?commodity=Bawang%20Merah&days=30",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "analytics", "commodity-trend"],
+              "query": [
+                { "key": "commodity", "value": "Bawang Merah" },
+                { "key": "days", "value": "30" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Users List",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/admin/users?role=PETANI&q=Bawang&page=1&pageSize=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "users"],
+              "query": [
+                { "key": "role", "value": "PETANI", "disabled": true },
+                { "key": "isActive", "value": "true", "disabled": true },
+                { "key": "isPhoneVerified", "value": "", "disabled": true },
+                { "key": "q", "value": "", "disabled": true },
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET User Detail (with profiles)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/admin/users/{{mock_user_petani}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "users", "{{mock_user_petani}}"]
+            }
+          }
+        },
+        {
+          "name": "PATCH Disable User / Verify Phone",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users/{{mock_user_petani}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "users", "{{mock_user_petani}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": false\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

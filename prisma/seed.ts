@@ -128,6 +128,56 @@ async function main() {
   console.log("\n[seed] Selesai. Tips test:")
   console.log('  - Petani: MOCK_AUTH_USER_ID="dev-petani-001" MOCK_AUTH_ROLE="PETANI"')
   console.log('  - Buyer:  MOCK_AUTH_USER_ID="dev-buyer-001"  MOCK_AUTH_ROLE="BUYER"')
+
+  // ----- Seed data harga & cuaca (untuk quick query WhatsApp) -----
+  console.log("\n[seed] Menyiapkan data harga & cuaca...")
+
+  const today = new Date().toISOString().slice(0, 10)
+  const commodities = [
+    { c: "bawang merah", p: 32000, r: "brebes" },
+    { c: "bawang putih", p: 28000, r: "brebes" },
+    { c: "cabai rawit", p: 45000, r: "brebes" },
+    { c: "cabai merah", p: 38000, r: "bandung" },
+    { c: "bawang merah", p: 34000, r: "jakarta" },
+    { c: "cabai rawit", p: 48000, r: "jakarta" },
+    { c: "beras", p: 12500, r: "cianjur" },
+    { c: "jagung", p: 8000, r: "indramayu" },
+  ]
+
+  let priceCount = 0
+  for (const { c, p, r } of commodities) {
+    const exists = await prisma.priceSnapshot.findFirst({
+      where: { commodity: c, region: r, snapshotDate: `${today}T00:00:00.000Z` },
+    })
+    if (!exists) {
+      await prisma.priceSnapshot.create({
+        data: { commodity: c, region: r, pricePerUnit: p, unit: "kg", snapshotDate: `${today}T00:00:00.000Z` },
+      })
+      priceCount++
+    }
+  }
+  console.log(`  PriceSnapshot: ${priceCount} data baru`)
+
+  const weatherRegions = ["brebes", "jakarta", "bandung", "semarang"]
+  let weatherCount = 0
+  for (const region of weatherRegions) {
+    const exists = await prisma.weatherSnapshot.findFirst({
+      where: { region, forecastDate: `${today}T00:00:00.000Z` },
+    })
+    if (!exists) {
+      await prisma.weatherSnapshot.create({
+        data: {
+          region,
+          temperature: 28 + Math.random() * 5,
+          humidity: 70 + Math.random() * 20,
+          condition: "cerah berawan",
+          forecastDate: `${today}T00:00:00.000Z`,
+        },
+      })
+      weatherCount++
+    }
+  }
+  console.log(`  WeatherSnapshot: ${weatherCount} data baru`)
 }
 
 main()
