@@ -1,5 +1,4 @@
 import { HarvestPlan, Recommendation, Komoditas, VolumeUnit } from "@/types";
-import { mockApi } from "./mockApi";
 import { STORAGE_KEYS } from "@/data/constants";
 
 export const harvestPlanApi = {
@@ -107,6 +106,24 @@ export const harvestPlanApi = {
       filtered = filtered.filter(r => r.type === type);
     }
     
+    return { data: filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) };
+  },
+
+  // 4. Get Harvest Plans for the current user
+  getHarvestPlans: (landId?: string): { data: HarvestPlan[] } => {
+    if (typeof window === "undefined") return { data: [] };
+    
+    const user = mockApi.getCurrentUser();
+    if (!user) return { data: [] };
+
+    const plansStr = localStorage.getItem(STORAGE_KEYS.HARVEST_PLANS);
+    const allPlans: HarvestPlan[] = plansStr ? JSON.parse(plansStr) : [];
+    
+    let filtered = allPlans.filter(p => p.farmerProfileId === user.phoneNumber);
+    if (landId) {
+      filtered = filtered.filter(p => p.landId === landId);
+    }
+
     return { data: filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) };
   }
 };
