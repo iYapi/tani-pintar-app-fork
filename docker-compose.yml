@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: tani-pintar-db
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: tani_pintar
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d tani_pintar"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tani-pintar-web
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@db:5432/tani_pintar?schema=public"
+      DIRECT_URL: "postgresql://postgres:postgres@db:5432/tani_pintar?schema=public"
+      JWT_SECRET: "production-secret-change-me-in-production-32chars-or-more"
+      JWT_ISSUER: "tani-pintar"
+      API_BASE_URL: "http://localhost:3000"
+      ENABLE_MOCK_AUTH: "false"
+      WA_SEND_URL: "https://botgh7.expiproject.com/api/send-message"
+      OTP_SEND_URL: "https://botgh7.expiproject.com/api/send-message"
+      INTERNAL_API_SECRET: "production-internal-secret-change-in-production"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db_data:
