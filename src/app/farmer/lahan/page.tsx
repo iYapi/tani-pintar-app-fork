@@ -63,7 +63,7 @@ export default function LahanPage() {
     if (currentUser) {
       if (currentUser.role !== "farmer") {
         // Hanya petani yang boleh mengakses halaman lahan ini
-        router.push("/dashboard");
+        router.push("/farmer/dashboard");
         return;
       }
       setUser(currentUser);
@@ -188,7 +188,7 @@ export default function LahanPage() {
       <header className="w-full bg-card/85 backdrop-blur-md sticky top-0 border-b border-border/50 px-4 py-3 z-[100]">
         <div className="max-w-lg mx-auto flex items-center justify-between">
           <button
-            onClick={() => router.push("/dashboard")}
+            onClick={() => router.push("/farmer/dashboard")}
             className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground font-semibold py-1.5 transition-all min-h-[36px]"
           >
             <ArrowLeft className="w-4 h-4" />

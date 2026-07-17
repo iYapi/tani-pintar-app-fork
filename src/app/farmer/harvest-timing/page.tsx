@@ -38,7 +38,7 @@ export default function HarvestTimingPage() {
     const currentUser = authApi.getCurrentUser();
     if (currentUser) {
       if (currentUser.role !== "farmer") {
-        router.push("/dashboard");
+        router.push("/farmer/dashboard");
         return;
       }
       setUser(currentUser);
@@ -82,7 +82,7 @@ export default function HarvestTimingPage() {
       harvestPlanApi.triggerRecommendations(newPlan.id);
 
       // 3. Navigate back to dashboard immediately
-      router.push("/dashboard");
+      router.push("/farmer/dashboard");
     } catch (err: any) {
       setFormError(err.message || "Terjadi kesalahan sistem.");
       setIsSubmitting(false);

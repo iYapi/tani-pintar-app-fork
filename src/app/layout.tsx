@@ -18,7 +18,6 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   title: "Tani Pintar — Keputusan Cerdas Hasil Panen Maksimal",
   description: "Platform kecerdasan keputusan panen dan pasar untuk petani kecil di Indonesia.",
-  manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",

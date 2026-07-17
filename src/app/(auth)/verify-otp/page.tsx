@@ -121,7 +121,11 @@ export default function VerifyOtpPage() {
 
     // Redirect setelah sukses menampilkan animasi
     setTimeout(() => {
-      router.push("/dashboard");
+      if (role === "buyer") {
+        router.push("/buyer/dashboard");
+      } else {
+        router.push("/farmer/dashboard");
+      }
     }, 2000);
   };
 

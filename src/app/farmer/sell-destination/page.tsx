@@ -43,7 +43,7 @@ function SellDestinationContent() {
     const currentUser = authApi.getCurrentUser();
     if (currentUser) {
       if (currentUser.role !== "farmer") {
-        router.push("/dashboard");
+        router.push("/farmer/dashboard");
         return;
       }
       setUser(currentUser);
@@ -88,7 +88,7 @@ function SellDestinationContent() {
     // Simulasikan delay transaksi dan update status
     setTimeout(() => {
       setIsSuccess(false);
-      router.push("/dashboard");
+      router.push("/farmer/dashboard");
     }, 2500);
   };
 

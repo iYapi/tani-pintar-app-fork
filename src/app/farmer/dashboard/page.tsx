@@ -32,7 +32,14 @@ import { getWeatherByCoords } from "@/lib/api/weatherApi";
 import { getPriceTrendByCommodity } from "@/lib/api/priceApi";
 import { COMMODITY_LIST, GROWTH_PHASE_LIST } from "@/lib/api/metadataApi";
 import { harvestPlanApi } from "@/lib/api/harvestPlanApi";
-import { LahanProfile, Komoditas, FaseTanam, UserProfile, HarvestPlan, Recommendation } from "@/types";
+import {
+  LahanProfile,
+  Komoditas,
+  FaseTanam,
+  UserProfile,
+  HarvestPlan,
+  Recommendation,
+} from "@/types";
 import PriceChart from "@/components/charts/PriceChart";
 import RecommendationCard from "@/components/cards/RecommendationCard";
 
@@ -56,8 +63,11 @@ export default function DashboardPage() {
 
   // Harvest Plan State
   const [harvestPlan, setHarvestPlan] = useState<HarvestPlan | null>(null);
-  const [recommendation, setRecommendation] = useState<Recommendation | null>(null);
-  const [sellRecommendation, setSellRecommendation] = useState<Recommendation | null>(null);
+  const [recommendation, setRecommendation] = useState<Recommendation | null>(
+    null,
+  );
+  const [sellRecommendation, setSellRecommendation] =
+    useState<Recommendation | null>(null);
   const [isGeneratingRec, setIsGeneratingRec] = useState(false);
 
   // Ref & State untuk Geser Lahan Horizontal
@@ -101,11 +111,18 @@ export default function DashboardPage() {
     setIsLoading(true);
     const currentUser = authApi.getCurrentUser();
     if (currentUser) {
+      if (currentUser.role === "buyer") {
+        router.push("/buyer/dashboard");
+        return;
+      }
       setUser(currentUser);
       const list = landApi.getLandList();
       setLahanList(list);
-      
-      const targetActiveIndex = Math.min(activeLahanIndex, list.length - 1 >= 0 ? list.length - 1 : 0);
+
+      const targetActiveIndex = Math.min(
+        activeLahanIndex,
+        list.length - 1 >= 0 ? list.length - 1 : 0,
+      );
       setActiveLahanIndex(targetActiveIndex);
 
       // Fetch Harvest Plans
@@ -115,9 +132,15 @@ export default function DashboardPage() {
         if (plansRes.data.length > 0) {
           const latestPlan = plansRes.data[0];
           setHarvestPlan(latestPlan);
-          
-          const recsRes = harvestPlanApi.getRecommendationsByPlanId(latestPlan.id, "HARVEST_TIMING");
-          const sellRecsRes = harvestPlanApi.getRecommendationsByPlanId(latestPlan.id, "SELL_DESTINATION");
+
+          const recsRes = harvestPlanApi.getRecommendationsByPlanId(
+            latestPlan.id,
+            "HARVEST_TIMING",
+          );
+          const sellRecsRes = harvestPlanApi.getRecommendationsByPlanId(
+            latestPlan.id,
+            "SELL_DESTINATION",
+          );
 
           if (recsRes.data.length > 0) {
             setRecommendation(recsRes.data[0]);
@@ -160,8 +183,14 @@ export default function DashboardPage() {
   useEffect(() => {
     if (isGeneratingRec && harvestPlan) {
       const interval = setInterval(() => {
-        const recsRes = harvestPlanApi.getRecommendationsByPlanId(harvestPlan.id, "HARVEST_TIMING");
-        const sellRecsRes = harvestPlanApi.getRecommendationsByPlanId(harvestPlan.id, "SELL_DESTINATION");
+        const recsRes = harvestPlanApi.getRecommendationsByPlanId(
+          harvestPlan.id,
+          "HARVEST_TIMING",
+        );
+        const sellRecsRes = harvestPlanApi.getRecommendationsByPlanId(
+          harvestPlan.id,
+          "SELL_DESTINATION",
+        );
         if (recsRes.data.length > 0 && sellRecsRes.data.length > 0) {
           setRecommendation(recsRes.data[0]);
           setSellRecommendation(sellRecsRes.data[0]);
@@ -572,7 +601,10 @@ export default function DashboardPage() {
                         Fase Tanam:
                       </span>
                       <span className="text-xs font-bold text-foreground">
-                        {GROWTH_PHASE_LIST.find((f) => f.id === faseTanam)?.label}
+                        {
+                          GROWTH_PHASE_LIST.find((f) => f.id === faseTanam)
+                            ?.label
+                        }
                       </span>
                     </div>
 
@@ -654,6 +686,42 @@ export default function DashboardPage() {
                 <Plus className="w-4 h-4" />
                 <span>Tambah Lahan</span>
               </button>
+            </div>
+
+            {/* Quick Menu / Navigasi Lahan */}
+            <div className="pt-2">
+              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-3">
+                Menu Cepat
+              </h3>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => router.push("/farmer/harvest-timing")}
+                  className="flex flex-col items-center justify-center p-4 bg-card border border-border/80 hover:border-primary/50 hover:bg-primary/5 rounded-3xl transition-all shadow-sm gap-3 group active:scale-95"
+                >
+                  <div className="w-14 h-14 bg-gradient-to-br from-green-500/10 to-emerald-500/10 text-green-600 dark:text-green-400 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:shadow-md transition-all">
+                    <TrendingUp className="w-7 h-7" />
+                  </div>
+                  <span className="text-[11px] font-bold text-foreground text-center leading-tight">
+                    Prediksi
+                    <br />
+                    Panen
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => router.push("/farmer/lahan")}
+                  className="flex flex-col items-center justify-center p-4 bg-card border border-border/80 hover:border-primary/50 hover:bg-primary/5 rounded-3xl transition-all shadow-sm gap-3 group active:scale-95"
+                >
+                  <div className="w-14 h-14 bg-gradient-to-br from-primary/10 to-primary/20 text-primary rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:shadow-md transition-all">
+                    <Layers className="w-7 h-7" />
+                  </div>
+                  <span className="text-[11px] font-bold text-foreground text-center leading-tight">
+                    Kelola
+                    <br />
+                    Lahan
+                  </span>
+                </button>
+              </div>
             </div>
 
             {/* Carousel atau Daftar Ringkasan Lahan (F1 Core) */}
@@ -843,9 +911,7 @@ export default function DashboardPage() {
                     activeLahan.koordinat.lat,
                     activeLahan.koordinat.lng,
                   );
-                  const price = getPriceTrendByCommodity(
-                    activeLahan.komoditas,
-                  );
+                  const price = getPriceTrendByCommodity(activeLahan.komoditas);
 
                   return (
                     <div className="grid grid-cols-1 gap-4">
@@ -958,25 +1024,33 @@ export default function DashboardPage() {
               <div className="space-y-4 pt-2">
                 <div className="flex items-center gap-2">
                   <Activity className="w-5 h-5 text-green-600 dark:text-green-500" />
-                  <h3 className="text-sm font-bold text-foreground">Status Rekomendasi Panen</h3>
+                  <h3 className="text-sm font-bold text-foreground">
+                    Status Rekomendasi Panen
+                  </h3>
                 </div>
 
                 {isGeneratingRec ? (
                   <div className="bg-card rounded-3xl p-6 border border-border/80 shadow-sm flex flex-col items-center justify-center text-center space-y-4">
                     <div className="w-10 h-10 border-4 border-green-100 dark:border-green-900 border-t-green-600 dark:border-t-green-500 rounded-full animate-spin" />
                     <div>
-                      <p className="font-bold text-sm text-foreground">Menganalisis Data Pasar & Cuaca...</p>
-                      <p className="text-xs text-muted-foreground mt-1">Sistem sedang menyusun rekomendasi terbaik untuk Anda.</p>
+                      <p className="font-bold text-sm text-foreground">
+                        Menganalisis Data Pasar & Cuaca...
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Sistem sedang menyusun rekomendasi terbaik untuk Anda.
+                      </p>
                     </div>
                   </div>
                 ) : recommendation ? (
                   <div className="space-y-4">
-                    <RecommendationCard 
+                    <RecommendationCard
                       status={recommendation.jsonData.oversupplyStatus as any}
-                      suggestedDate={recommendation.jsonData.suggestedHarvestDate}
+                      suggestedDate={
+                        recommendation.jsonData.suggestedHarvestDate
+                      }
                       message={recommendation.naturalLanguageText}
                     />
-                     {recommendation.jsonData.projectedPriceTrend && (
+                    {recommendation.jsonData.projectedPriceTrend && (
                       <PriceChart
                         data={recommendation.jsonData.projectedPriceTrend}
                       />
@@ -1002,10 +1076,17 @@ export default function DashboardPage() {
                           <Briefcase className="w-5 h-5 text-primary" />
                         </div>
                         <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                          {sellRecommendation.naturalLanguageText.replace(/\*\*/g, "")}
+                          {sellRecommendation.naturalLanguageText.replace(
+                            /\*\*/g,
+                            "",
+                          )}
                         </p>
                         <button
-                          onClick={() => router.push(`/sell-destination?harvestPlanId=${harvestPlan?.id}`)}
+                          onClick={() =>
+                            router.push(
+                              `/farmer/sell-destination?harvestPlanId=${harvestPlan?.id}`,
+                            )
+                          }
                           className="w-full py-3 px-4 bg-primary text-primary-foreground hover:bg-primary/95 rounded-2xl font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all active:scale-98 min-h-[44px]"
                         >
                           Lihat 3 Destinasi Terbaik
@@ -1017,36 +1098,6 @@ export default function DashboardPage() {
                 ) : null}
               </div>
             )}
-
-            {/* Quick Menu / Navigasi Lahan */}
-            <div className="pt-2">
-              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-3">Menu Cepat</h3>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => router.push("/harvest-timing")}
-                  className="flex flex-col items-center justify-center p-4 bg-card border border-border/80 hover:border-primary/50 hover:bg-primary/5 rounded-3xl transition-all shadow-sm gap-3 group active:scale-95"
-                >
-                  <div className="w-14 h-14 bg-gradient-to-br from-green-500/10 to-emerald-500/10 text-green-600 dark:text-green-400 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:shadow-md transition-all">
-                    <TrendingUp className="w-7 h-7" />
-                  </div>
-                  <span className="text-[11px] font-bold text-foreground text-center leading-tight">
-                    Prediksi<br/>Panen
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => router.push("/lahan")}
-                  className="flex flex-col items-center justify-center p-4 bg-card border border-border/80 hover:border-primary/50 hover:bg-primary/5 rounded-3xl transition-all shadow-sm gap-3 group active:scale-95"
-                >
-                  <div className="w-14 h-14 bg-gradient-to-br from-primary/10 to-primary/20 text-primary rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:shadow-md transition-all">
-                    <Layers className="w-7 h-7" />
-                  </div>
-                  <span className="text-[11px] font-bold text-foreground text-center leading-tight">
-                    Kelola<br/>Lahan
-                  </span>
-                </button>
-              </div>
-            </div>
 
             {/* Logout/Reset Demo Button */}
             <div className="pt-4 border-t border-border/50 flex gap-2">
@@ -1062,66 +1113,6 @@ export default function DashboardPage() {
                 className="flex-1 py-3 px-4 rounded-2xl bg-secondary text-secondary-foreground hover:bg-primary/10 border border-primary/20 font-bold text-xs transition-all min-h-[44px]"
               >
                 Reset Data Lahan (Demo)
-              </button>
-            </div>
-          </motion.div>
-        )}
-
-        {/* ================= MODE: BUYER DASHBOARD ================= */}
-        {user.role === "buyer" && (
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-6 py-8 text-center"
-          >
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-primary/10 text-primary mb-4">
-              <Briefcase className="w-10 h-10" />
-            </div>
-
-            <div className="space-y-2">
-              <h2 className="text-2xl font-black text-foreground">
-                Halo, {user.fullName}!
-              </h2>
-              <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                Anda masuk sebagai peran **Pembeli (Buyer B2B / Koperasi)**.
-              </p>
-            </div>
-
-            <div className="bg-card py-6 px-5 border border-border/50 rounded-3xl text-left space-y-4 max-w-sm mx-auto shadow-sm">
-              <div className="flex items-center gap-2.5">
-                <CheckCircle className="w-5 h-5 text-primary" />
-                <h4 className="font-bold text-sm text-foreground">
-                  Akun Pembeli Aktif
-                </h4>
-              </div>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Di fase berikutnya, Anda akan dapat:
-              </p>
-              <ul className="text-xs text-muted-foreground space-y-2 pl-2">
-                <li className="flex items-center gap-2">
-                  🔹 <strong>FR-09:</strong> Lengkapi Profil Usaha Pembeli.
-                </li>
-                <li className="flex items-center gap-2">
-                  🔹 <strong>FR-10:</strong> Posting Demand Listing (kebutuhan).
-                </li>
-                <li className="flex items-center gap-2">
-                  🔹 <strong>FR-12:</strong> Melakukan pencocokan pasokan dengan
-                  petani secara otomatis.
-                </li>
-              </ul>
-            </div>
-
-            <div className="pt-4 flex flex-col gap-2 max-w-sm mx-auto">
-              <button
-                onClick={() => {
-                  // Switch role to farmer to test onboarding wizard
-                  const updated: UserProfile = { ...user, role: "farmer" };
-                  authApi.saveCurrentUser(updated);
-                  loadData();
-                }}
-                className="w-full py-3.5 px-4 rounded-2xl bg-primary text-primary-foreground hover:bg-primary/95 font-bold text-xs transition-all min-h-[44px]"
-              >
-                Coba Demo Alur Petani (F1 Onboarding)
               </button>
             </div>
           </motion.div>

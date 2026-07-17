@@ -20,7 +20,8 @@ export type Komoditas =
   | "tomat"
   | "bawang_merah"
   | "kentang"
-  | "kubis";
+  | "kubis"
+  | string;
 
 export interface LahanProfile {
   id: string;
@@ -45,7 +46,7 @@ export interface HarvestPlan {
   id: string;
   farmerProfileId: string;
   landId?: string | null;
-  commodity: Komoditas | string;
+  commodity: Komoditas;
   estimatedVolume: number;
   volumeUnit: VolumeUnit;
   readyToHarvestDate: string; // ISO date
@@ -77,5 +78,70 @@ export interface Recommendation {
   naturalLanguageText: string;
   modelVersion: string;
   isRead: boolean;
+  createdAt: string;
+}
+
+// B2B Buyer Module Types
+export type BuyerBusinessType = "PASAR_INDUK" | "KOPERASI" | "RESTORAN" | "PABRIK_OLAHAN" | "LAINNYA";
+export type DemandListingStatus = "OPEN" | "FULFILLED" | "CLOSED" | "CANCELLED";
+export type SaleListingStatus = "OPEN" | "MATCHED" | "CLOSED" | "CANCELLED";
+
+export interface BuyerProfile {
+  id: string;
+  userId: string;
+  businessName: string;
+  businessType: BuyerBusinessType;
+  locationName: string;
+  latitude?: number;
+  longitude?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DemandListing {
+  id: string;
+  buyerProfileId: string;
+  commodity: Komoditas;
+  volume: number;
+  unit: VolumeUnit;
+  locationName: string;
+  latitude?: number;
+  longitude?: number;
+  maxPricePerUnit?: number;
+  deadline: string; // ISO date
+  description?: string;
+  status: DemandListingStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SaleListing {
+  id: string;
+  farmerProfileId: string;
+  harvestPlanId?: string;
+  commodity: Komoditas;
+  volume: number;
+  unit: VolumeUnit;
+  locationName: string;
+  latitude?: number;
+  longitude?: number;
+  minPricePerUnit?: number;
+  availableDate: string; // ISO date
+  isOversupply: boolean;
+  status: SaleListingStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type NegotiationStatus = "PENDING" | "ACCEPTED" | "REJECTED" | "COUNTERED";
+
+export interface NegotiationBid {
+  id: string;
+  demandId: string;
+  saleId: string;
+  buyerProfileId: string;
+  farmerProfileId: string;
+  bidPrice: number;
+  status: NegotiationStatus;
   createdAt: string;
 }
