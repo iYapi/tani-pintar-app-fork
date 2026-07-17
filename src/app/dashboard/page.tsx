@@ -57,6 +57,7 @@ export default function DashboardPage() {
   // Harvest Plan State
   const [harvestPlan, setHarvestPlan] = useState<HarvestPlan | null>(null);
   const [recommendation, setRecommendation] = useState<Recommendation | null>(null);
+  const [sellRecommendation, setSellRecommendation] = useState<Recommendation | null>(null);
   const [isGeneratingRec, setIsGeneratingRec] = useState(false);
 
   // Ref & State untuk Geser Lahan Horizontal
@@ -116,16 +117,29 @@ export default function DashboardPage() {
           setHarvestPlan(latestPlan);
           
           const recsRes = harvestPlanApi.getRecommendationsByPlanId(latestPlan.id, "HARVEST_TIMING");
+          const sellRecsRes = harvestPlanApi.getRecommendationsByPlanId(latestPlan.id, "SELL_DESTINATION");
+
           if (recsRes.data.length > 0) {
             setRecommendation(recsRes.data[0]);
+          } else {
+            setRecommendation(null);
+          }
+
+          if (sellRecsRes.data.length > 0) {
+            setSellRecommendation(sellRecsRes.data[0]);
+          } else {
+            setSellRecommendation(null);
+          }
+
+          if (recsRes.data.length > 0 || sellRecsRes.data.length > 0) {
             setIsGeneratingRec(false);
           } else {
-            // No recommendation yet, probably async job is running
             setIsGeneratingRec(true);
           }
         } else {
           setHarvestPlan(null);
           setRecommendation(null);
+          setSellRecommendation(null);
           setIsGeneratingRec(false);
         }
       }
@@ -147,8 +161,10 @@ export default function DashboardPage() {
     if (isGeneratingRec && harvestPlan) {
       const interval = setInterval(() => {
         const recsRes = harvestPlanApi.getRecommendationsByPlanId(harvestPlan.id, "HARVEST_TIMING");
-        if (recsRes.data.length > 0) {
+        const sellRecsRes = harvestPlanApi.getRecommendationsByPlanId(harvestPlan.id, "SELL_DESTINATION");
+        if (recsRes.data.length > 0 && sellRecsRes.data.length > 0) {
           setRecommendation(recsRes.data[0]);
+          setSellRecommendation(sellRecsRes.data[0]);
           setIsGeneratingRec(false);
           clearInterval(interval);
         }
@@ -960,10 +976,42 @@ export default function DashboardPage() {
                       suggestedDate={recommendation.jsonData.suggestedHarvestDate}
                       message={recommendation.naturalLanguageText}
                     />
-                    {recommendation.jsonData.projectedPriceTrend && (
+                     {recommendation.jsonData.projectedPriceTrend && (
                       <PriceChart
                         data={recommendation.jsonData.projectedPriceTrend}
                       />
+                    )}
+
+                    {/* Ringkasan Destinasi Penjualan (FR-05) */}
+                    {sellRecommendation && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4, delay: 0.1 }}
+                        className="bg-card border border-border/80 rounded-3xl p-5 shadow-sm space-y-4"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <span className="text-[10px] font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                              Auto-Matching B2B
+                            </span>
+                            <h4 className="font-bold text-zinc-900 dark:text-zinc-100 mt-2 text-sm">
+                              Rekomendasi Pembeli Terbaik
+                            </h4>
+                          </div>
+                          <Briefcase className="w-5 h-5 text-primary" />
+                        </div>
+                        <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                          {sellRecommendation.naturalLanguageText.replace(/\*\*/g, "")}
+                        </p>
+                        <button
+                          onClick={() => router.push(`/sell-destination?harvestPlanId=${harvestPlan?.id}`)}
+                          className="w-full py-3 px-4 bg-primary text-primary-foreground hover:bg-primary/95 rounded-2xl font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all active:scale-98 min-h-[44px]"
+                        >
+                          Lihat 3 Destinasi Terbaik
+                          <ArrowRight className="w-4 h-4" />
+                        </button>
+                      </motion.div>
                     )}
                   </div>
                 ) : null}

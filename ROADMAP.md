@@ -10,9 +10,9 @@ Aturan Mutlak: **1 Fitur = 1 Branch**. Jangan menggabungkan beberapa modul fitur
 
 | Fitur | ID SRD | Nama Modul / Fitur | Prioritas | Target Peran | Status | Branch Terkait | Catatan |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **F1** | `FR-01`<br>`FR-02` | Onboarding & Profil Lahan | **Must Have** | Petani | 🟡 *In Progress* | `feature/f1-onboarding-lahan` | Registrasi nomor HP + OTP 6-digit & CRUD lahan di peta. |
-| **F2** | `FR-03`<br>`FR-04` | Harvest Timing Optimizer | **Must Have** | Petani | 🔴 *Not Started* | `feature/f2-harvest-timing` | Input rencana panen, grafik proyeksi harga & rekomendasi BMKG. |
-| **F3** | `FR-05` | Sell Destination Matcher | **Must Have** | Petani | 🔴 *Not Started* | `feature/f3-sell-destination` | Peta & kalkulasi margin bersih logistik ke pembeli. |
+| **F1** | `FR-01`<br>`FR-02` | Onboarding & Profil Lahan | **Must Have** | Petani | 🟢 *Selesai* | `feature/f1-onboarding-lahan` | Registrasi nomor HP + OTP 6-digit & CRUD lahan di peta. |
+| **F2** | `FR-03`<br>`FR-04` | Harvest Timing Optimizer | **Must Have** | Petani | 🟢 *Selesai* | `feature/f2-harvest-timing` | Input rencana panen, grafik proyeksi harga & rekomendasi BMKG. |
+| **F3** | `FR-05` | Sell Destination Matcher | **Must Have** | Petani | 🟢 *Selesai* | `feature/f3-sell-destination` | Peta & kalkulasi margin bersih logistik ke pembeli. |
 | **F4** | `FR-06` | Preservation Recommender | **Should Have** | Petani | 🔴 *Not Started* | `feature/f4-preservation` | Panduan preservasi saat harga/cuaca tidak ideal. |
 | **F5** | `FR-07` | Waste Value Recovery | **Could Have** | Petani | 🔴 *Not Started* | `feature/f5-waste-recovery` | Rekomendasi olahan alternatif hasil panen rusak. |
 | **F6** | `FR-08` | Riwayat & Analitik Pribadi | **Should Have** | Petani | 🔴 *Not Started* | `feature/f6-riwayat-analitik` | Log keputusan panen/jual dan perbandingan hasil riil vs proyeksi. |

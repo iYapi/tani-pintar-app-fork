@@ -43,7 +43,15 @@ export const harvestPlanApi = {
         const plan = allPlans.find(p => p.id === harvestPlanId);
 
         if (plan) {
-          const basePrice = plan.commodity === "cabai_merah" ? 32000 : plan.commodity === "kentang" ? 16000 : 20000;
+          const prices: Record<string, number> = {
+            cabai_merah: 32000,
+            cabai_rawit: 48000,
+            tomat: 12000,
+            bawang_merah: 35000,
+            kentang: 16000,
+            kubis: 6000
+          };
+          const basePrice = prices[plan.commodity] || 20000;
           let currentPrice = basePrice;
           const trend = Array.from({ length: 14 }).map((_, i) => {
             const date = new Date(plan.readyToHarvestDate);
@@ -61,7 +69,7 @@ export const harvestPlanApi = {
           if (isOversupply) optimalDate.setDate(optimalDate.getDate() + 5);
 
           const newRec: Recommendation = {
-            id: "rec-" + Math.random().toString(36).substring(2, 9),
+            id: "rec-ht-" + Math.random().toString(36).substring(2, 9),
             harvestPlanId: plan.id,
             type: "HARVEST_TIMING",
             jsonData: {
@@ -80,9 +88,52 @@ export const harvestPlanApi = {
             createdAt: new Date().toISOString()
           };
 
+          // Generate Sell Destination recommendation matching FR-05
+          const costPerKgPerKm = 150; // flat rate Rp 150 per kg per km
+          const destinations = [
+            {
+              buyerId: "buyer-1",
+              buyerName: "Pasar Induk Brebes",
+              netMargin: Math.round((plan.estimatedVolume * basePrice * 0.97) - (15.4 * costPerKgPerKm * plan.estimatedVolume)),
+              distanceKm: 15.4,
+              logisticsCost: Math.round(15.4 * costPerKgPerKm * plan.estimatedVolume),
+              shelfLifeFeasible: true
+            },
+            {
+              buyerId: "buyer-2",
+              buyerName: "Koperasi Tani Jaya",
+              netMargin: Math.round((plan.estimatedVolume * basePrice * 0.92) - (5.2 * costPerKgPerKm * plan.estimatedVolume)),
+              distanceKm: 5.2,
+              logisticsCost: Math.round(5.2 * costPerKgPerKm * plan.estimatedVolume),
+              shelfLifeFeasible: true
+            },
+            {
+              buyerId: "buyer-3",
+              buyerName: "PT Tani Distribusi Jakarta",
+              netMargin: Math.round((plan.estimatedVolume * basePrice * 1.15) - (312.8 * costPerKgPerKm * plan.estimatedVolume)),
+              distanceKm: 312.8,
+              logisticsCost: Math.round(312.8 * costPerKgPerKm * plan.estimatedVolume),
+              shelfLifeFeasible: plan.commodity !== "tomat" && plan.commodity !== "cabai_merah" && plan.commodity !== "cabai_rawit"
+            }
+          ].sort((a, b) => b.netMargin - a.netMargin);
+
+          const newSellRec: Recommendation = {
+            id: "rec-sd-" + Math.random().toString(36).substring(2, 9),
+            harvestPlanId: plan.id,
+            type: "SELL_DESTINATION",
+            jsonData: {
+              destinations: destinations
+            },
+            naturalLanguageText: `Berdasarkan analisis logistik dan harga pasar, **${destinations[0].buyerName}** memberikan margin bersih tertinggi sebesar **Rp ${destinations[0].netMargin.toLocaleString("id-ID")}** dengan jarak ${destinations[0].distanceKm} km.`,
+            modelVersion: "rule-based-v1",
+            isRead: false,
+            createdAt: new Date().toISOString()
+          };
+
           const recsStr = localStorage.getItem(STORAGE_KEYS.RECOMMENDATIONS);
           const allRecs: Recommendation[] = recsStr ? JSON.parse(recsStr) : [];
           allRecs.push(newRec);
+          allRecs.push(newSellRec);
           localStorage.setItem(STORAGE_KEYS.RECOMMENDATIONS, JSON.stringify(allRecs));
         }
       }, 2000); // 2 second delay
