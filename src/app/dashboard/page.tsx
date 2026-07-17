@@ -54,10 +54,10 @@ export default function DashboardPage() {
     if (!scrollRef.current) return;
     const { scrollLeft, clientWidth } = scrollRef.current;
     if (clientWidth === 0) return;
-    
+
     // Karena kartu berukuran lebar penuh (w-full), pembagi adalah clientWidth
     const index = Math.round(scrollLeft / clientWidth);
-    
+
     // Hanya update state jika indeks benar-benar bergeser/berubah
     if (index !== activeDot && index >= 0 && index < lahanList.length) {
       setActiveDot(index);
@@ -78,7 +78,9 @@ export default function DashboardPage() {
   const [faseTanam, setFaseTanam] = useState<FaseTanam>("persiapan");
   const [koordinat, setKoordinat] = useState({ lat: -7.2504, lng: 112.7688 });
   const [alamat, setAlamat] = useState("");
-  const [tanggalTanam, setTanggalTanam] = useState(new Date().toISOString().split("T")[0]);
+  const [tanggalTanam, setTanggalTanam] = useState(
+    new Date().toISOString().split("T")[0],
+  );
 
   // Muat status user dan lahan saat inisialisasi
   const loadData = () => {
@@ -88,7 +90,9 @@ export default function DashboardPage() {
       setUser(currentUser);
       const list = mockApi.getLahanList();
       setLahanList(list);
-      setActiveLahanIndex((prev) => Math.min(prev, list.length - 1 >= 0 ? list.length - 1 : 0));
+      setActiveLahanIndex((prev) =>
+        Math.min(prev, list.length - 1 >= 0 ? list.length - 1 : 0),
+      );
 
       // Jika petani tidak punya lahan, buka mode onboarding wizard
       if (currentUser.role === "farmer" && list.length === 0) {
@@ -193,7 +197,9 @@ export default function DashboardPage() {
             <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center shadow-md shadow-primary/20">
               <Leaf className="w-5 h-5" />
             </div>
-            <span className="font-display font-bold text-lg tracking-tight text-foreground">Tani Pintar</span>
+            <span className="font-display font-bold text-lg tracking-tight text-foreground">
+              Tani Pintar
+            </span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -213,7 +219,6 @@ export default function DashboardPage() {
 
       {/* Main Container */}
       <main className="flex-1 w-full max-w-lg mx-auto px-4 py-6">
-
         {/* ================= MODE: FARMER ONBOARDING WIZARD ================= */}
         {user.role === "farmer" && isOnboarding && (
           <motion.div
@@ -223,36 +228,65 @@ export default function DashboardPage() {
           >
             {/* Header Greeting Onboarding */}
             <div className="text-center space-y-1">
-              <h2 className="text-2xl font-extrabold text-foreground tracking-tight">Halo, {user.fullName}! 👋</h2>
+              <h2 className="text-2xl font-extrabold text-foreground tracking-tight">
+                Halo, {user.fullName}! 👋
+              </h2>
               <p className="text-xs text-muted-foreground">
-                Mari lengkapi profil lahan Anda untuk mulai mengaktifkan kalkulator harga & cuaca.
+                Mari lengkapi profil lahan Anda untuk mulai mengaktifkan
+                kalkulator harga & cuaca.
               </p>
             </div>
 
             {/* Stepper Progress Indicator */}
             <div className="bg-card rounded-2xl p-4 border border-border/50 flex items-center justify-between shadow-sm">
               <div className="flex items-center gap-2 flex-1 justify-center">
-                <span className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs transition-all ${wizardStep >= 1 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                  }`}>1</span>
-                <span className="text-xs font-semibold hidden xs:block">Detail Lahan</span>
+                <span
+                  className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs transition-all ${
+                    wizardStep >= 1
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  1
+                </span>
+                <span className="text-xs font-semibold hidden xs:block">
+                  Detail Lahan
+                </span>
               </div>
               <div className="h-0.5 w-8 bg-border"></div>
               <div className="flex items-center gap-2 flex-1 justify-center">
-                <span className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs transition-all ${wizardStep >= 2 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                  }`}>2</span>
-                <span className="text-xs font-semibold hidden xs:block">Lokasi Map</span>
+                <span
+                  className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs transition-all ${
+                    wizardStep >= 2
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  2
+                </span>
+                <span className="text-xs font-semibold hidden xs:block">
+                  Lokasi Map
+                </span>
               </div>
               <div className="h-0.5 w-8 bg-border"></div>
               <div className="flex items-center gap-2 flex-1 justify-center">
-                <span className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs transition-all ${wizardStep >= 3 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                  }`}>3</span>
-                <span className="text-xs font-semibold hidden xs:block">Konfirmasi</span>
+                <span
+                  className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs transition-all ${
+                    wizardStep >= 3
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  3
+                </span>
+                <span className="text-xs font-semibold hidden xs:block">
+                  Konfirmasi
+                </span>
               </div>
             </div>
 
             {/* Wizard Form Area */}
             <div className="bg-card rounded-3xl p-5 shadow-lg border border-border/50 relative overflow-hidden">
-
               {formError && (
                 <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 text-destructive text-xs rounded-xl flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0" />
@@ -274,7 +308,9 @@ export default function DashboardPage() {
 
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-xs font-semibold text-foreground/80 mb-1">Nama Lahan</label>
+                      <label className="block text-xs font-semibold text-foreground/80 mb-1">
+                        Nama Lahan
+                      </label>
                       <input
                         type="text"
                         placeholder="Contoh: Sawah Caringin Utama"
@@ -286,7 +322,9 @@ export default function DashboardPage() {
 
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-xs font-semibold text-foreground/80 mb-1">Luas Lahan (Hektar)</label>
+                        <label className="block text-xs font-semibold text-foreground/80 mb-1">
+                          Luas Lahan (Hektar)
+                        </label>
                         <input
                           type="number"
                           step="0.01"
@@ -298,7 +336,9 @@ export default function DashboardPage() {
                       </div>
 
                       <div>
-                        <label className="block text-xs font-semibold text-foreground/80 mb-1">Tanggal Mulai Tanam</label>
+                        <label className="block text-xs font-semibold text-foreground/80 mb-1">
+                          Tanggal Mulai Tanam
+                        </label>
                         <input
                           type="date"
                           value={tanggalTanam}
@@ -309,30 +349,39 @@ export default function DashboardPage() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-foreground/80 mb-2">Pilih Komoditas Utama</label>
+                      <label className="block text-xs font-semibold text-foreground/80 mb-2">
+                        Pilih Komoditas Utama
+                      </label>
                       <div className="grid grid-cols-2 gap-2.5">
                         {KOMODITAS_LIST.map((item) => (
                           <button
                             type="button"
                             key={item.id}
                             onClick={() => setKomoditas(item.id)}
-                            className={`p-3 rounded-2xl border-2 text-left transition-all flex flex-col gap-1 min-h-[44px] ${komoditas === item.id
-                              ? "border-primary bg-primary/5 text-primary"
-                              : "border-border bg-background/35 text-foreground hover:border-muted-foreground/30"
-                              }`}
+                            className={`p-3 rounded-2xl border-2 text-left transition-all flex flex-col gap-1 min-h-[44px] ${
+                              komoditas === item.id
+                                ? "border-primary bg-primary/5 text-primary"
+                                : "border-border bg-background/35 text-foreground hover:border-muted-foreground/30"
+                            }`}
                           >
                             <span className="text-xl">{item.icon}</span>
-                            <span className="font-bold text-xs text-foreground mt-0.5">{item.label}</span>
+                            <span className="font-bold text-xs text-foreground mt-0.5">
+                              {item.label}
+                            </span>
                           </button>
                         ))}
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-foreground/80 mb-2">Fase Tanam Saat Ini</label>
+                      <label className="block text-xs font-semibold text-foreground/80 mb-2">
+                        Fase Tanam Saat Ini
+                      </label>
                       <select
                         value={faseTanam}
-                        onChange={(e) => setFaseTanam(e.target.value as FaseTanam)}
+                        onChange={(e) =>
+                          setFaseTanam(e.target.value as FaseTanam)
+                        }
                         className="w-full px-4 py-2.5 rounded-2xl border border-border bg-background/50 text-sm focus:outline-none focus:ring-2 focus:ring-primary min-h-[44px]"
                       >
                         {FASE_TANAM_LIST.map((item) => (
@@ -369,7 +418,8 @@ export default function DashboardPage() {
                     Langkah 2: Tentukan Lokasi Lahan
                   </h3>
                   <p className="text-[11px] text-muted-foreground">
-                    Gunakan pencarian alamat di bawah atau seret penanda pin langsung ke posisi lahan pertanian Anda.
+                    Gunakan pencarian alamat di bawah atau seret penanda pin
+                    langsung ke posisi lahan pertanian Anda.
                   </p>
 
                   <LahanMap
@@ -416,23 +466,34 @@ export default function DashboardPage() {
                     Langkah 3: Konfirmasi Data Lahan
                   </h3>
                   <p className="text-xs text-muted-foreground">
-                    Periksa kembali data profil lahan Anda sebelum disimpan ke sistem.
+                    Periksa kembali data profil lahan Anda sebelum disimpan ke
+                    sistem.
                   </p>
 
                   {/* Summary Cards */}
                   <div className="space-y-3 bg-muted/40 p-4 rounded-2xl border border-border">
                     <div className="flex justify-between items-center pb-2 border-b border-border/50">
-                      <span className="text-xs text-muted-foreground font-semibold">Nama Lahan:</span>
-                      <span className="text-xs font-bold text-foreground">{namaLahan}</span>
+                      <span className="text-xs text-muted-foreground font-semibold">
+                        Nama Lahan:
+                      </span>
+                      <span className="text-xs font-bold text-foreground">
+                        {namaLahan}
+                      </span>
                     </div>
 
                     <div className="flex justify-between items-center pb-2 border-b border-border/50">
-                      <span className="text-xs text-muted-foreground font-semibold">Luas Lahan:</span>
-                      <span className="text-xs font-bold text-foreground">{luasLahan} Hektar (Ha)</span>
+                      <span className="text-xs text-muted-foreground font-semibold">
+                        Luas Lahan:
+                      </span>
+                      <span className="text-xs font-bold text-foreground">
+                        {luasLahan} Hektar (Ha)
+                      </span>
                     </div>
 
                     <div className="flex justify-between items-center pb-2 border-b border-border/50">
-                      <span className="text-xs text-muted-foreground font-semibold">Komoditas:</span>
+                      <span className="text-xs text-muted-foreground font-semibold">
+                        Komoditas:
+                      </span>
                       <span className="text-xs font-bold text-foreground capitalize flex items-center gap-1">
                         {KOMODITAS_LIST.find((k) => k.id === komoditas)?.icon}
                         {KOMODITAS_LIST.find((k) => k.id === komoditas)?.label}
@@ -440,14 +501,18 @@ export default function DashboardPage() {
                     </div>
 
                     <div className="flex justify-between items-center pb-2 border-b border-border/50">
-                      <span className="text-xs text-muted-foreground font-semibold">Fase Tanam:</span>
+                      <span className="text-xs text-muted-foreground font-semibold">
+                        Fase Tanam:
+                      </span>
                       <span className="text-xs font-bold text-foreground">
                         {FASE_TANAM_LIST.find((f) => f.id === faseTanam)?.label}
                       </span>
                     </div>
 
                     <div className="flex justify-between items-center pb-2 border-b border-border/50">
-                      <span className="text-xs text-muted-foreground font-semibold">Tanggal Tanam:</span>
+                      <span className="text-xs text-muted-foreground font-semibold">
+                        Tanggal Tanam:
+                      </span>
                       <span className="text-xs font-bold text-foreground flex items-center gap-1">
                         <Calendar className="w-3.5 h-3.5 text-primary" />
                         {tanggalTanam}
@@ -455,7 +520,9 @@ export default function DashboardPage() {
                     </div>
 
                     <div className="pt-1">
-                      <span className="text-xs text-muted-foreground font-semibold block mb-0.5">Alamat / Pin Koordinat:</span>
+                      <span className="text-xs text-muted-foreground font-semibold block mb-0.5">
+                        Alamat / Pin Koordinat:
+                      </span>
                       <p className="text-[11px] font-medium text-foreground leading-relaxed">
                         📍 {alamat}
                       </p>
@@ -465,7 +532,10 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
-                  <form onSubmit={handleOnboardingSubmit} className="grid grid-cols-2 gap-3 pt-2">
+                  <form
+                    onSubmit={handleOnboardingSubmit}
+                    className="grid grid-cols-2 gap-3 pt-2"
+                  >
                     <button
                       type="button"
                       onClick={prevStep}
@@ -506,7 +576,9 @@ export default function DashboardPage() {
           >
             {/* Header Greeting */}
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-black text-foreground mt-0.5">Halo, {user.fullName}! 👋</h2>
+              <h2 className="text-xl font-black text-foreground mt-0.5">
+                Halo, {user.fullName}! 👋
+              </h2>
 
               <button
                 onClick={() => router.push("/lahan")}
@@ -519,7 +591,9 @@ export default function DashboardPage() {
 
             {/* Carousel atau Daftar Ringkasan Lahan (F1 Core) */}
             <div className="space-y-3">
-              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Lahan Anda ({lahanList.length})</h3>
+              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">
+                Lahan Anda ({lahanList.length})
+              </h3>
 
               <div
                 ref={scrollRef}
@@ -527,8 +601,12 @@ export default function DashboardPage() {
                 className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-none scroll-smooth"
               >
                 {lahanList.map((lahan) => {
-                  const km = KOMODITAS_LIST.find((k) => k.id === lahan.komoditas);
-                  const ft = FASE_TANAM_LIST.find((f) => f.id === lahan.faseTanam);
+                  const km = KOMODITAS_LIST.find(
+                    (k) => k.id === lahan.komoditas,
+                  );
+                  const ft = FASE_TANAM_LIST.find(
+                    (f) => f.id === lahan.faseTanam,
+                  );
                   return (
                     <div
                       key={lahan.id}
@@ -537,9 +615,13 @@ export default function DashboardPage() {
                       {/* Badge Komoditas */}
                       <div className="flex justify-between items-start">
                         <div className="flex items-center gap-3">
-                          <div className="text-3xl p-2 bg-muted rounded-2xl">{km?.icon}</div>
+                          <div className="text-3xl p-2 bg-muted rounded-2xl">
+                            {km?.icon}
+                          </div>
                           <div>
-                            <h4 className="font-black text-base text-foreground leading-tight">{lahan.namaLahan}</h4>
+                            <h4 className="font-black text-base text-foreground leading-tight">
+                              {lahan.namaLahan}
+                            </h4>
                             <span className="text-xs font-semibold text-muted-foreground uppercase block mt-0.5">
                               Komoditas: {km?.label}
                             </span>
@@ -554,11 +636,17 @@ export default function DashboardPage() {
                       {/* Detail Grid */}
                       <div className="grid grid-cols-2 gap-3 bg-muted/30 p-3 rounded-2xl border border-border/40 text-xs">
                         <div className="space-y-0.5">
-                          <span className="text-[10px] text-muted-foreground font-semibold uppercase block">Luas Lahan</span>
-                          <span className="font-bold text-foreground">{lahan.luasLahan} Hektar (Ha)</span>
+                          <span className="text-[10px] text-muted-foreground font-semibold uppercase block">
+                            Luas Lahan
+                          </span>
+                          <span className="font-bold text-foreground">
+                            {lahan.luasLahan} Hektar (Ha)
+                          </span>
                         </div>
                         <div className="space-y-0.5">
-                          <span className="text-[10px] text-muted-foreground font-semibold uppercase block">Mulai Tanam</span>
+                          <span className="text-[10px] text-muted-foreground font-semibold uppercase block">
+                            Mulai Tanam
+                          </span>
                           <span className="font-bold text-foreground flex items-center gap-1">
                             <Calendar className="w-3.5 h-3.5 text-primary" />
                             {lahan.tanggalTanam}
@@ -585,7 +673,10 @@ export default function DashboardPage() {
                       const targetIdx = 0;
                       setActiveDot(targetIdx);
                       setActiveLahanIndex(targetIdx);
-                      if (scrollRef.current && scrollRef.current.children[targetIdx]) {
+                      if (
+                        scrollRef.current &&
+                        scrollRef.current.children[targetIdx]
+                      ) {
                         scrollRef.current.children[targetIdx].scrollIntoView({
                           behavior: "smooth",
                           block: "nearest",
@@ -596,7 +687,9 @@ export default function DashboardPage() {
                     className={`h-1.5 rounded-full transition-all duration-300 focus:outline-none min-h-0 bg-primary ${
                       activeDot < lahanList.length - 1 ? "w-4" : "w-1.5"
                     }`}
-                    style={{ opacity: activeDot < lahanList.length - 1 ? 1 : 0.25 }}
+                    style={{
+                      opacity: activeDot < lahanList.length - 1 ? 1 : 0.25,
+                    }}
                     aria-label="Ke lahan pertama"
                   />
 
@@ -606,7 +699,10 @@ export default function DashboardPage() {
                       const targetIdx = lahanList.length - 1;
                       setActiveDot(targetIdx);
                       setActiveLahanIndex(targetIdx);
-                      if (scrollRef.current && scrollRef.current.children[targetIdx]) {
+                      if (
+                        scrollRef.current &&
+                        scrollRef.current.children[targetIdx]
+                      ) {
                         scrollRef.current.children[targetIdx].scrollIntoView({
                           behavior: "smooth",
                           block: "nearest",
@@ -617,7 +713,9 @@ export default function DashboardPage() {
                     className={`h-1.5 rounded-full transition-all duration-300 focus:outline-none min-h-0 bg-primary ${
                       activeDot === lahanList.length - 1 ? "w-4" : "w-1.5"
                     }`}
-                    style={{ opacity: activeDot === lahanList.length - 1 ? 1 : 0.25 }}
+                    style={{
+                      opacity: activeDot === lahanList.length - 1 ? 1 : 0.25,
+                    }}
                     aria-label="Ke lahan terakhir"
                   />
                 </div>
@@ -627,7 +725,6 @@ export default function DashboardPage() {
             {/* ================= INTEGRASI EXTRA: CUACA & HARGA LAHAN SECARA DINAMIS ================= */}
             {lahanList.length > 0 && (
               <div className="space-y-4">
-                
                 {/* Selector Tab Lahan (Hanya tampil jika ada lebih dari 1 lahan) */}
                 {lahanList.length > 1 && (
                   <div className="bg-card rounded-2xl p-3.5 border border-border shadow-sm space-y-2">
@@ -636,7 +733,9 @@ export default function DashboardPage() {
                     </label>
                     <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
                       {lahanList.map((lahan, idx) => {
-                        const km = KOMODITAS_LIST.find((k) => k.id === lahan.komoditas);
+                        const km = KOMODITAS_LIST.find(
+                          (k) => k.id === lahan.komoditas,
+                        );
                         return (
                           <button
                             key={lahan.id}
@@ -644,7 +743,10 @@ export default function DashboardPage() {
                             onClick={() => {
                               setActiveLahanIndex(idx);
                               setActiveDot(idx);
-                              if (scrollRef.current && scrollRef.current.children[idx]) {
+                              if (
+                                scrollRef.current &&
+                                scrollRef.current.children[idx]
+                              ) {
                                 scrollRef.current.children[idx].scrollIntoView({
                                   behavior: "smooth",
                                   block: "nearest",
@@ -668,10 +770,16 @@ export default function DashboardPage() {
                 )}
 
                 {(() => {
-                  const activeLahan = lahanList[activeLahanIndex] || lahanList[0];
-                  const weather = mockApi.getWeatherByCoords(activeLahan.koordinat.lat, activeLahan.koordinat.lng);
-                  const price = mockApi.getPriceTrendByCommodity(activeLahan.komoditas);
-                  
+                  const activeLahan =
+                    lahanList[activeLahanIndex] || lahanList[0];
+                  const weather = mockApi.getWeatherByCoords(
+                    activeLahan.koordinat.lat,
+                    activeLahan.koordinat.lng,
+                  );
+                  const price = mockApi.getPriceTrendByCommodity(
+                    activeLahan.komoditas,
+                  );
+
                   return (
                     <div className="grid grid-cols-1 gap-4">
                       {/* Info Cuaca BMKG Lahan Terpilih */}
@@ -681,26 +789,39 @@ export default function DashboardPage() {
                             <Compass className="w-4 h-4 text-sky-600" />
                             Cuaca Lahan: {activeLahan.namaLahan}
                           </h4>
-                          <span className="text-[10px] text-sky-700 font-bold bg-sky-500/10 px-2 py-0.5 rounded-full border border-sky-500/20">BMKG</span>
+                          <span className="text-[10px] text-sky-700 font-bold bg-sky-500/10 px-2 py-0.5 rounded-full border border-sky-500/20">
+                            BMKG
+                          </span>
                         </div>
-                        
+
                         <div className="flex items-center gap-4">
                           <span className="text-4xl">{weather.icon}</span>
                           <div>
                             <div className="flex items-center gap-2">
-                              <span className="text-lg font-black text-sky-900">{weather.status}</span>
-                              <span className="text-sm font-semibold text-sky-700">({weather.temp})</span>
+                              <span className="text-lg font-black text-sky-900">
+                                {weather.status}
+                              </span>
+                              <span className="text-sm font-semibold text-sky-700">
+                                ({weather.temp})
+                              </span>
                             </div>
-                            
+
                             <div className="flex items-center gap-3 text-xs text-sky-700 mt-1">
-                              <span className="flex items-center gap-1"><Droplets className="w-3.5 h-3.5 text-sky-600" /> Kelembaban: {weather.humidity}</span>
-                              <span className="flex items-center gap-1"><Thermometer className="w-3.5 h-3.5 text-sky-600" /> Rata-rata</span>
+                              <span className="flex items-center gap-1">
+                                <Droplets className="w-3.5 h-3.5 text-sky-600" />{" "}
+                                Kelembaban: {weather.humidity}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Thermometer className="w-3.5 h-3.5 text-sky-600" />{" "}
+                                Rata-rata
+                              </span>
                             </div>
                           </div>
                         </div>
 
                         <p className="text-xs bg-white/80 text-sky-900 border border-sky-200 p-3 rounded-2xl leading-relaxed">
-                          🌱 <strong>Saran Pemeliharaan Lahan:</strong> {weather.suggestion}
+                          🌱 <strong>Saran Pemeliharaan Lahan:</strong>{" "}
+                          {weather.suggestion}
                         </p>
                       </div>
 
@@ -711,47 +832,75 @@ export default function DashboardPage() {
                             <TrendingUp className="w-4 h-4 text-primary" />
                             Harga Pasar Terkini: {price.label}
                           </h4>
-                          <span className="text-[10px] text-primary font-bold bg-primary/5 px-2 py-0.5 rounded-full border border-primary/10">BAPANAS</span>
+                          <span className="text-[10px] text-primary font-bold bg-primary/5 px-2 py-0.5 rounded-full border border-primary/10">
+                            BAPANAS
+                          </span>
                         </div>
 
                         <div className="flex justify-between items-center">
                           <div>
-                            <span className="text-xs text-muted-foreground font-medium block">Rata-rata Harga Hari Ini</span>
+                            <span className="text-xs text-muted-foreground font-medium block">
+                              Rata-rata Harga Hari Ini
+                            </span>
                             <span className="text-2xl font-black text-foreground mt-0.5 block">
                               Rp{price.current.toLocaleString()}/kg
                             </span>
                           </div>
 
-                          <div className={`text-right px-3 py-1.5 rounded-2xl border text-xs font-bold ${
-                            price.status === "naik"
-                              ? "bg-emerald-500/10 border-emerald-500/15 text-emerald-600"
-                              : price.status === "turun"
-                              ? "bg-rose-500/10 border-rose-500/15 text-rose-600"
-                              : "bg-muted border-border text-muted-foreground"
-                          }`}>
-                            <div>{price.diffText} ({price.percentage})</div>
-                            <span className="text-[10px] uppercase font-semibold tracking-wider block mt-0.5">Minggu Ini</span>
+                          <div
+                            className={`text-right px-3 py-1.5 rounded-2xl border text-xs font-bold ${
+                              price.status === "naik"
+                                ? "bg-emerald-500/10 border-emerald-500/15 text-emerald-600"
+                                : price.status === "turun"
+                                  ? "bg-rose-500/10 border-rose-500/15 text-rose-600"
+                                  : "bg-muted border-border text-muted-foreground"
+                            }`}
+                          >
+                            <div>
+                              {price.diffText} ({price.percentage})
+                            </div>
+                            <span className="text-[10px] uppercase font-semibold tracking-wider block mt-0.5">
+                              Minggu Ini
+                            </span>
                           </div>
                         </div>
 
-                        <div className={`p-3 rounded-2xl text-xs leading-relaxed flex items-center justify-between ${
-                          price.status === "turun"
-                            ? "bg-rose-500/10 text-rose-800 border border-rose-500/15"
-                            : "bg-emerald-500/10 text-emerald-800 border border-emerald-500/15"
-                        }`}>
-                          <span className="font-semibold">Kondisi Pasar Wilayah:</span>
-                          <span className="font-black">{price.marketStatus}</span>
+                        <div
+                          className={`p-3 rounded-2xl text-xs leading-relaxed flex items-center justify-between ${
+                            price.status === "turun"
+                              ? "bg-rose-500/10 text-rose-800 border border-rose-500/15"
+                              : "bg-emerald-500/10 text-emerald-800 border border-emerald-500/15"
+                          }`}
+                        >
+                          <span className="font-semibold">
+                            Kondisi Pasar Wilayah:
+                          </span>
+                          <span className="font-black">
+                            {price.marketStatus}
+                          </span>
                         </div>
                       </div>
                     </div>
                   );
                 })()}
-
               </div>
             )}
 
             {/* Menu Navigasi Lahan lengkap */}
-            <div className="pt-2">
+            <div className="pt-2 space-y-3">
+              <button
+                onClick={() => router.push("/harvest-timing")}
+                className="w-full flex items-center justify-between py-4 px-5 border border-border bg-card hover:bg-muted text-foreground font-semibold rounded-2xl transition-all min-h-[44px]"
+              >
+                <span className="flex items-center gap-3">
+                  <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  <div className="flex flex-col items-start">
+                    <span>Prediksi Harga dan Waktu Panen</span>
+                  </div>
+                </span>
+                <ChevronRight className="w-4 h-4 text-green-600 dark:text-green-400" />
+              </button>
+
               <button
                 onClick={() => router.push("/lahan")}
                 className="w-full flex items-center justify-between py-4 px-5 border border-border bg-card hover:bg-muted text-foreground font-semibold rounded-2xl transition-all min-h-[44px]"
@@ -795,7 +944,9 @@ export default function DashboardPage() {
             </div>
 
             <div className="space-y-2">
-              <h2 className="text-2xl font-black text-foreground">Halo, {user.fullName}!</h2>
+              <h2 className="text-2xl font-black text-foreground">
+                Halo, {user.fullName}!
+              </h2>
               <p className="text-xs text-muted-foreground max-w-sm mx-auto">
                 Anda masuk sebagai peran **Pembeli (Buyer B2B / Koperasi)**.
               </p>
@@ -804,15 +955,24 @@ export default function DashboardPage() {
             <div className="bg-card py-6 px-5 border border-border/50 rounded-3xl text-left space-y-4 max-w-sm mx-auto shadow-sm">
               <div className="flex items-center gap-2.5">
                 <CheckCircle className="w-5 h-5 text-primary" />
-                <h4 className="font-bold text-sm text-foreground">Akun Pembeli Aktif</h4>
+                <h4 className="font-bold text-sm text-foreground">
+                  Akun Pembeli Aktif
+                </h4>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Di fase berikutnya, Anda akan dapat:
               </p>
               <ul className="text-xs text-muted-foreground space-y-2 pl-2">
-                <li className="flex items-center gap-2">🔹 <strong>FR-09:</strong> Lengkapi Profil Usaha Pembeli.</li>
-                <li className="flex items-center gap-2">🔹 <strong>FR-10:</strong> Posting Demand Listing (kebutuhan).</li>
-                <li className="flex items-center gap-2">🔹 <strong>FR-12:</strong> Melakukan pencocokan pasokan dengan petani secara otomatis.</li>
+                <li className="flex items-center gap-2">
+                  🔹 <strong>FR-09:</strong> Lengkapi Profil Usaha Pembeli.
+                </li>
+                <li className="flex items-center gap-2">
+                  🔹 <strong>FR-10:</strong> Posting Demand Listing (kebutuhan).
+                </li>
+                <li className="flex items-center gap-2">
+                  🔹 <strong>FR-12:</strong> Melakukan pencocokan pasokan dengan
+                  petani secara otomatis.
+                </li>
               </ul>
             </div>
 
@@ -831,7 +991,6 @@ export default function DashboardPage() {
             </div>
           </motion.div>
         )}
-
       </main>
 
       {/* Footer */}

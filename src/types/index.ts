@@ -37,3 +37,45 @@ export interface LahanProfile {
   tanggalTanam: string; // ISO date string
   createdAt: string; // ISO date string
 }
+
+export type HarvestPlanStatus = "DRAFT" | "PLANNED" | "READY" | "HARVESTED";
+export type VolumeUnit = "kg" | "ton" | "kwintal";
+
+export interface HarvestPlan {
+  id: string;
+  farmerProfileId: string;
+  landId?: string | null;
+  commodity: Komoditas | string;
+  estimatedVolume: number;
+  volumeUnit: VolumeUnit;
+  readyToHarvestDate: string; // ISO date
+  actualVolume?: number | null;
+  status: HarvestPlanStatus;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type OversupplyStatus = "AMAN" | "WASPADA" | "OVERSUPPLY";
+
+export interface HarvestTimingData {
+  projectedPrice: number;
+  projectedPriceDate: string; // ISO date
+  oversupplyStatus: OversupplyStatus;
+  suggestedHarvestDate: string; // ISO date
+  confidence: number;
+  projectedPriceTrend: { date: string; price: number }[]; // For the chart
+}
+
+export type RecommendationType = "HARVEST_TIMING" | "SELL_DESTINATION" | "PRESERVATION" | "WASTE_RECOVERY";
+
+export interface Recommendation {
+  id: string;
+  harvestPlanId: string;
+  type: RecommendationType;
+  jsonData: HarvestTimingData | any;
+  naturalLanguageText: string;
+  modelVersion: string;
+  isRead: boolean;
+  createdAt: string;
+}
