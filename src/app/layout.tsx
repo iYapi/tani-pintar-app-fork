@@ -41,8 +41,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id">
-      <body className={`${inter.variable} ${outfit.variable} font-sans`}>
-        <Providers>{children}</Providers>
+      <body className={`${inter.variable} ${outfit.variable} font-sans bg-gradient-to-br from-[#e6ede9] via-[#f4f7f5] to-[#dfeae3] flex justify-center items-start min-h-screen`}>
+        <Providers>
+          <div className="w-full max-w-[480px] min-h-screen bg-background text-foreground shadow-[0_0_50px_rgba(15,80,45,0.08)] relative flex flex-col border-x border-border/10">
+            {children}
+          </div>
+        </Providers>
       </body>
     </html>
   );
