@@ -24,9 +24,13 @@ import {
   ArrowLeft,
   Smartphone,
   ChevronRight,
+  Activity,
 } from "lucide-react";
 import { mockApi, KOMODITAS_LIST, FASE_TANAM_LIST } from "@/lib/api/mockApi";
-import { LahanProfile, Komoditas, FaseTanam, UserProfile } from "@/types";
+import { harvestPlanApi } from "@/lib/api/harvestPlanApi";
+import { LahanProfile, Komoditas, FaseTanam, UserProfile, HarvestPlan, Recommendation } from "@/types";
+import PriceChart from "@/components/charts/PriceChart";
+import RecommendationCard from "@/components/cards/RecommendationCard";
 
 // Load LahanMap secara dinamis (ssr: false) untuk mencegah error Leaflet pada Server-Side Rendering
 const LahanMap = dynamic(() => import("@/components/maps/LahanMap"), {
@@ -45,6 +49,11 @@ export default function DashboardPage() {
   const [lahanList, setLahanList] = useState<LahanProfile[]>([]);
   const [activeLahanIndex, setActiveLahanIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Harvest Plan State
+  const [harvestPlan, setHarvestPlan] = useState<HarvestPlan | null>(null);
+  const [recommendation, setRecommendation] = useState<Recommendation | null>(null);
+  const [isGeneratingRec, setIsGeneratingRec] = useState(false);
 
   // Ref & State untuk Geser Lahan Horizontal
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -90,9 +99,32 @@ export default function DashboardPage() {
       setUser(currentUser);
       const list = mockApi.getLahanList();
       setLahanList(list);
-      setActiveLahanIndex((prev) =>
-        Math.min(prev, list.length - 1 >= 0 ? list.length - 1 : 0),
-      );
+      
+      const targetActiveIndex = Math.min(activeLahanIndex, list.length - 1 >= 0 ? list.length - 1 : 0);
+      setActiveLahanIndex(targetActiveIndex);
+
+      // Fetch Harvest Plans
+      const activeLahan = list[targetActiveIndex];
+      if (activeLahan) {
+        const plansRes = harvestPlanApi.getHarvestPlans(activeLahan.id);
+        if (plansRes.data.length > 0) {
+          const latestPlan = plansRes.data[0];
+          setHarvestPlan(latestPlan);
+          
+          const recsRes = harvestPlanApi.getRecommendationsByPlanId(latestPlan.id, "HARVEST_TIMING");
+          if (recsRes.data.length > 0) {
+            setRecommendation(recsRes.data[0]);
+            setIsGeneratingRec(false);
+          } else {
+            // No recommendation yet, probably async job is running
+            setIsGeneratingRec(true);
+          }
+        } else {
+          setHarvestPlan(null);
+          setRecommendation(null);
+          setIsGeneratingRec(false);
+        }
+      }
 
       // Jika petani tidak punya lahan, buka mode onboarding wizard
       if (currentUser.role === "farmer" && list.length === 0) {
@@ -106,9 +138,24 @@ export default function DashboardPage() {
     setIsLoading(false);
   };
 
+  // Poll for recommendation if it's currently generating
+  useEffect(() => {
+    if (isGeneratingRec && harvestPlan) {
+      const interval = setInterval(() => {
+        const recsRes = harvestPlanApi.getRecommendationsByPlanId(harvestPlan.id, "HARVEST_TIMING");
+        if (recsRes.data.length > 0) {
+          setRecommendation(recsRes.data[0]);
+          setIsGeneratingRec(false);
+          clearInterval(interval);
+        }
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [isGeneratingRec, harvestPlan]);
+
   useEffect(() => {
     loadData();
-  }, [router]);
+  }, [router, activeLahanIndex]);
 
   const handleLogout = () => {
     if (typeof window !== "undefined") {
@@ -886,31 +933,67 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Menu Navigasi Lahan lengkap */}
-            <div className="pt-2 space-y-3">
-              <button
-                onClick={() => router.push("/harvest-timing")}
-                className="w-full flex items-center justify-between py-4 px-5 border border-border bg-card hover:bg-muted text-foreground font-semibold rounded-2xl transition-all min-h-[44px]"
-              >
-                <span className="flex items-center gap-3">
-                  <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
-                  <div className="flex flex-col items-start">
-                    <span>Prediksi Harga dan Waktu Panen</span>
-                  </div>
-                </span>
-                <ChevronRight className="w-4 h-4 text-green-600 dark:text-green-400" />
-              </button>
+            {/* ================= REKOMENDASI PANEN AKTIF ================= */}
+            {(harvestPlan || isGeneratingRec) && (
+              <div className="space-y-4 pt-2">
+                <div className="flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-green-600 dark:text-green-500" />
+                  <h3 className="text-sm font-bold text-foreground">Status Rekomendasi Panen</h3>
+                </div>
 
-              <button
-                onClick={() => router.push("/lahan")}
-                className="w-full flex items-center justify-between py-4 px-5 border border-border bg-card hover:bg-muted text-foreground font-semibold rounded-2xl transition-all min-h-[44px]"
-              >
-                <span className="flex items-center gap-2">
-                  <Layers className="w-5 h-5 text-primary" />
-                  Kelola Seluruh Profil Lahan Anda
-                </span>
-                <ChevronRight className="w-4 h-4 text-muted-foreground" />
-              </button>
+                {isGeneratingRec ? (
+                  <div className="bg-card rounded-3xl p-6 border border-border/80 shadow-sm flex flex-col items-center justify-center text-center space-y-4">
+                    <div className="w-10 h-10 border-4 border-green-100 dark:border-green-900 border-t-green-600 dark:border-t-green-500 rounded-full animate-spin" />
+                    <div>
+                      <p className="font-bold text-sm text-foreground">Menganalisis Data Pasar & Cuaca...</p>
+                      <p className="text-xs text-muted-foreground mt-1">Sistem sedang menyusun rekomendasi terbaik untuk Anda.</p>
+                    </div>
+                  </div>
+                ) : recommendation ? (
+                  <div className="space-y-4">
+                    <RecommendationCard 
+                      status={recommendation.jsonData.oversupplyStatus as any}
+                      suggestedDate={recommendation.jsonData.suggestedHarvestDate}
+                      message={recommendation.naturalLanguageText}
+                    />
+                    {recommendation.jsonData.projectedPriceTrend && (
+                      <PriceChart
+                        data={recommendation.jsonData.projectedPriceTrend}
+                      />
+                    )}
+                  </div>
+                ) : null}
+              </div>
+            )}
+
+            {/* Quick Menu / Navigasi Lahan */}
+            <div className="pt-2">
+              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-3">Menu Cepat</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => router.push("/harvest-timing")}
+                  className="flex flex-col items-center justify-center p-4 bg-card border border-border/80 hover:border-primary/50 hover:bg-primary/5 rounded-3xl transition-all shadow-sm gap-3 group active:scale-95"
+                >
+                  <div className="w-14 h-14 bg-gradient-to-br from-green-500/10 to-emerald-500/10 text-green-600 dark:text-green-400 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:shadow-md transition-all">
+                    <TrendingUp className="w-7 h-7" />
+                  </div>
+                  <span className="text-[11px] font-bold text-foreground text-center leading-tight">
+                    Prediksi<br/>Panen
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => router.push("/lahan")}
+                  className="flex flex-col items-center justify-center p-4 bg-card border border-border/80 hover:border-primary/50 hover:bg-primary/5 rounded-3xl transition-all shadow-sm gap-3 group active:scale-95"
+                >
+                  <div className="w-14 h-14 bg-gradient-to-br from-primary/10 to-primary/20 text-primary rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:shadow-md transition-all">
+                    <Layers className="w-7 h-7" />
+                  </div>
+                  <span className="text-[11px] font-bold text-foreground text-center leading-tight">
+                    Kelola<br/>Lahan
+                  </span>
+                </button>
+              </div>
             </div>
 
             {/* Logout/Reset Demo Button */}

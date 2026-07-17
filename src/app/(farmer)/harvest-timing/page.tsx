@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   ArrowLeft,
   Calendar,
@@ -14,9 +14,7 @@ import {
 } from "lucide-react";
 import { mockApi, KOMODITAS_LIST } from "@/lib/api/mockApi";
 import { harvestPlanApi } from "@/lib/api/harvestPlanApi";
-import { LahanProfile, UserProfile, HarvestPlan, Recommendation, HarvestTimingData, VolumeUnit } from "@/types";
-import PriceChart from "@/components/charts/PriceChart";
-import RecommendationCard from "@/components/cards/RecommendationCard";
+import { LahanProfile, UserProfile, VolumeUnit } from "@/types";
 
 export default function HarvestTimingPage() {
   const router = useRouter();
@@ -33,7 +31,6 @@ export default function HarvestTimingPage() {
   // App State
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
-  const [recommendationResult, setRecommendationResult] = useState<Recommendation | null>(null);
 
   useEffect(() => {
     const currentUser = mockApi.getCurrentUser();
@@ -68,7 +65,6 @@ export default function HarvestTimingPage() {
     if (!selectedLahan) return;
 
     setIsSubmitting(true);
-    setRecommendationResult(null);
 
     try {
       // 1. Create Plan
@@ -81,17 +77,10 @@ export default function HarvestTimingPage() {
       });
 
       // 2. Trigger async recommendation
-      const job = harvestPlanApi.triggerRecommendations(newPlan.id);
+      harvestPlanApi.triggerRecommendations(newPlan.id);
 
-      // 3. Poll for result (Mocked with timeout)
-      setTimeout(() => {
-        const result = harvestPlanApi.getRecommendationsByPlanId(newPlan.id, "HARVEST_TIMING");
-        if (result.data.length > 0) {
-          setRecommendationResult(result.data[0]);
-        }
-        setIsSubmitting(false);
-      }, 2500);
-
+      // 3. Navigate back to dashboard immediately
+      router.push("/dashboard");
     } catch (err: any) {
       setFormError(err.message || "Terjadi kesalahan sistem.");
       setIsSubmitting(false);
@@ -115,176 +104,132 @@ export default function HarvestTimingPage() {
             <ArrowLeft className="w-5 h-5 text-zinc-700 dark:text-zinc-300" />
           </button>
           <div className="flex flex-col">
-            <h1 className="font-bold text-zinc-900 dark:text-zinc-100">Harvest Timing Optimizer</h1>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">Rekomendasi waktu panen cerdas</p>
+            <h1 className="font-bold text-zinc-900 dark:text-zinc-100">Buat Rencana Panen</h1>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">Input jadwal panen untuk prediksi</p>
           </div>
         </div>
       </header>
 
       <main className="max-w-3xl mx-auto px-4 py-8">
-        {!recommendationResult ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-6"
-          >
-            <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-6 text-white shadow-sm">
-              <Activity className="w-8 h-8 mb-4 opacity-90" />
-              <h2 className="text-xl font-bold mb-2">Hindari Jual Murah</h2>
-              <p className="text-green-50 text-sm leading-relaxed max-w-md">
-                Masukkan rencana panen Anda. Sistem akan memprediksi tren harga pasar dan risiko oversupply untuk memberi tahu kapan waktu paling menguntungkan untuk memanen.
-              </p>
-            </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-6"
+        >
+          <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-6 text-white shadow-sm">
+            <Activity className="w-8 h-8 mb-4 opacity-90" />
+            <h2 className="text-xl font-bold mb-2">Hindari Jual Murah</h2>
+            <p className="text-green-50 text-sm leading-relaxed max-w-md">
+              Masukkan rencana panen Anda. Sistem akan memprediksi tren harga pasar dan risiko oversupply untuk memberi tahu kapan waktu paling menguntungkan untuk memanen, dan menampilkannya di Dashboard Anda.
+            </p>
+          </div>
 
-            <form onSubmit={handleSubmit} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm space-y-6">
-              {formError && (
-                <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 text-sm flex items-start gap-3">
-                  <AlertCircle className="w-5 h-5 shrink-0" />
-                  <p>{formError}</p>
-                </div>
-              )}
+          <form onSubmit={handleSubmit} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm space-y-6">
+            {formError && (
+              <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 text-sm flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 shrink-0" />
+                <p>{formError}</p>
+              </div>
+            )}
 
-              {lahanList.length === 0 ? (
-                <div className="text-center py-6">
-                  <Sprout className="w-12 h-12 text-zinc-300 dark:text-zinc-700 mx-auto mb-3" />
-                  <p className="text-zinc-500 dark:text-zinc-400 text-sm mb-4">Anda belum mendaftarkan lahan.</p>
-                  <button
-                    type="button"
-                    onClick={() => router.push("/lahan")}
-                    className="px-4 py-2 bg-green-500 text-white rounded-lg text-sm font-medium hover:bg-green-600"
+            {lahanList.length === 0 ? (
+              <div className="text-center py-6">
+                <Sprout className="w-12 h-12 text-zinc-300 dark:text-zinc-700 mx-auto mb-3" />
+                <p className="text-zinc-500 dark:text-zinc-400 text-sm mb-4">Anda belum mendaftarkan lahan.</p>
+                <button
+                  type="button"
+                  onClick={() => router.push("/lahan")}
+                  className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-medium text-sm transition-colors"
+                >
+                  Daftar Lahan Sekarang
+                </button>
+              </div>
+            ) : (
+              <>
+                {/* Lahan Selection */}
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Pilih Lahan / Komoditas</label>
+                  <select
+                    value={selectedLahanId}
+                    onChange={(e) => setSelectedLahanId(e.target.value)}
+                    className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 py-3 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-colors"
                   >
-                    Daftar Lahan Sekarang
-                  </button>
+                    {lahanList.map((lahan) => {
+                      const km = KOMODITAS_LIST.find(k => k.id === lahan.komoditas);
+                      return (
+                        <option key={lahan.id} value={lahan.id}>
+                          {km?.icon} {lahan.namaLahan} ({km?.label})
+                        </option>
+                      );
+                    })}
+                  </select>
                 </div>
-              ) : (
-                <>
-                  <div className="space-y-4">
-                    <div className="space-y-1.5">
-                      <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Pilih Lahan</label>
-                      <select
-                        value={selectedLahanId}
-                        onChange={(e) => setSelectedLahanId(e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-green-500 dark:text-zinc-100"
-                      >
-                        {lahanList.map((l) => (
-                          <option key={l.id} value={l.id}>
-                            {l.namaLahan} - {KOMODITAS_LIST.find(k => k.id === l.komoditas)?.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Estimasi Hasil</label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Scale className="w-5 h-5 text-zinc-400" />
-                          </div>
-                          <input
-                            type="number"
-                            value={estimatedVolume}
-                            onChange={(e) => setEstimatedVolume(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-green-500 dark:text-zinc-100"
-                            placeholder="Misal: 1200"
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Satuan</label>
-                        <select
-                          value={volumeUnit}
-                          onChange={(e) => setVolumeUnit(e.target.value as VolumeUnit)}
-                          className="w-full px-4 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-green-500 dark:text-zinc-100"
-                        >
-                          <option value="kg">Kilogram (Kg)</option>
-                          <option value="kwintal">Kwintal</option>
-                          <option value="ton">Ton</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Rencana Tanggal Panen</label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <Calendar className="w-5 h-5 text-zinc-400" />
-                        </div>
-                        <input
-                          type="date"
-                          value={readyToHarvestDate}
-                          onChange={(e) => setReadyToHarvestDate(e.target.value)}
-                          className="w-full pl-10 pr-4 py-3 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-green-500 dark:text-zinc-100"
-                        />
-                      </div>
-                      <p className="text-xs text-zinc-500 mt-1">Tanggal ini akan dianalisis untuk risiko oversupply.</p>
-                    </div>
+                {/* Date Selection */}
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Tanggal Rencana Panen</label>
+                  <div className="relative">
+                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
+                    <input
+                      type="date"
+                      value={readyToHarvestDate}
+                      onChange={(e) => setReadyToHarvestDate(e.target.value)}
+                      className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 rounded-xl pl-12 pr-4 py-3 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-colors"
+                      required
+                    />
                   </div>
+                </div>
 
+                {/* Estimated Volume */}
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Estimasi Volume Panen</label>
+                  <div className="flex gap-3">
+                    <div className="relative flex-1">
+                      <Scale className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
+                      <input
+                        type="number"
+                        placeholder="Contoh: 500"
+                        value={estimatedVolume}
+                        onChange={(e) => setEstimatedVolume(e.target.value)}
+                        className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 rounded-xl pl-12 pr-4 py-3 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-colors"
+                        required
+                        min="1"
+                      />
+                    </div>
+                    <select
+                      value={volumeUnit}
+                      onChange={(e) => setVolumeUnit(e.target.value as VolumeUnit)}
+                      className="w-32 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 py-3 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-colors"
+                    >
+                      <option value="kg">Kilogram (kg)</option>
+                      <option value="ton">Ton</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="pt-4">
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full py-3.5 bg-green-500 hover:bg-green-600 text-white rounded-xl font-medium shadow-sm shadow-green-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="w-full bg-green-600 hover:bg-green-700 text-white rounded-xl py-3.5 font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-md shadow-green-600/20"
                   >
                     {isSubmitting ? (
                       <>
                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Menganalisis Pasar & Cuaca...
+                        <span>Menyimpan Rencana...</span>
                       </>
                     ) : (
                       <>
-                        <Activity className="w-5 h-5" />
-                        Dapatkan Rekomendasi
+                        <Save className="w-5 h-5" />
+                        <span>Simpan & Buat Prediksi</span>
                       </>
                     )}
                   </button>
-                </>
-              )}
-            </form>
-          </motion.div>
-        ) : (
-          <AnimatePresence>
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="space-y-6"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Hasil Analisis AI</h2>
-                  <p className="text-sm text-zinc-500">Berdasarkan data BAPANAS & BMKG</p>
                 </div>
-                <button 
-                  onClick={() => setRecommendationResult(null)}
-                  className="text-sm text-green-600 font-medium hover:underline"
-                >
-                  Buat Rencana Baru
-                </button>
-              </div>
-
-              {/* Recommendation Card */}
-              <RecommendationCard 
-                status={(recommendationResult.jsonData as HarvestTimingData).oversupplyStatus}
-                suggestedDate={(recommendationResult.jsonData as HarvestTimingData).suggestedHarvestDate}
-                message={recommendationResult.naturalLanguageText}
-              />
-
-              {/* Price Chart */}
-              <PriceChart 
-                data={(recommendationResult.jsonData as HarvestTimingData).projectedPriceTrend} 
-                title={`Proyeksi Harga ${commodityInfo?.label} (14 Hari Kedepan)`}
-              />
-
-              <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 rounded-2xl p-4 flex gap-3 text-sm">
-                <AlertCircle className="w-5 h-5 shrink-0 text-blue-500 mt-0.5" />
-                <div className="text-blue-800 dark:text-blue-200 leading-relaxed">
-                  <strong>Penting:</strong> Keputusan akhir tetap di tangan Anda. Jika Anda harus panen sekarang karena kebutuhan mendesak, Anda bisa melihat <span className="font-medium underline cursor-pointer text-blue-600 dark:text-blue-400">Rekomendasi Tujuan Jual (F3)</span> untuk mencari pasar terbaik.
-                </div>
-              </div>
-            </motion.div>
-          </AnimatePresence>
-        )}
+              </>
+            )}
+          </form>
+        </motion.div>
       </main>
     </div>
   );
