@@ -36,6 +36,7 @@ function SellDestinationContent() {
   // UI state
   const [showFormulaInfo, setShowFormulaInfo] = useState(false);
   const [selectedBuyerId, setSelectedBuyerId] = useState<string | null>(null);
+  const [selectedBuyerIsRisk, setSelectedBuyerIsRisk] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
@@ -77,8 +78,9 @@ function SellDestinationContent() {
     setIsLoading(false);
   }, [router, harvestPlanId]);
 
-  const handleAcceptMatch = async (buyerId: string) => {
+  const handleAcceptMatch = async (buyerId: string, isRisk: boolean) => {
     setSelectedBuyerId(buyerId);
+    setSelectedBuyerIsRisk(isRisk);
     setIsConfirming(true);
   };
 
@@ -296,15 +298,14 @@ function SellDestinationContent() {
                       {/* CTA Button */}
                       <div className="mt-4 pt-3.5 border-t border-zinc-100 dark:border-zinc-800">
                         <button
-                          onClick={() => handleAcceptMatch(dest.buyerName)}
+                          onClick={() => handleAcceptMatch(dest.buyerName, !dest.shelfLifeFeasible)}
                           className={`w-full py-2.5 px-4 rounded-2xl font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-98 min-h-[44px] ${
                             dest.shelfLifeFeasible
                               ? "bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 shadow-sm"
-                              : "bg-zinc-100 text-zinc-400 dark:bg-zinc-800/40 dark:text-zinc-600 cursor-not-allowed"
+                              : "bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 dark:bg-red-950/20 dark:text-red-400 dark:hover:bg-red-950/40 dark:border-red-900/30 shadow-xs"
                           }`}
-                          disabled={!dest.shelfLifeFeasible}
                         >
-                          {dest.shelfLifeFeasible ? "Kunci & Hubungi Pembeli" : "Tidak Disarankan"}
+                          {dest.shelfLifeFeasible ? "Kunci & Hubungi Pembeli" : "Tidak Disarankan (Hubungi)"}
                           <ChevronRight className="w-4 h-4" />
                         </button>
                       </div>
@@ -328,13 +329,31 @@ function SellDestinationContent() {
                 className="w-full max-w-[448px] bg-white dark:bg-zinc-950 rounded-t-[32px] p-6 shadow-2xl space-y-6 border-t border-zinc-200 dark:border-zinc-800"
               >
                 <div className="text-center space-y-2">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto text-xl">
-                    🤝
-                  </div>
-                  <h3 className="text-base font-extrabold text-zinc-900 dark:text-zinc-100">Konfirmasi Pencocokan Lahan</h3>
+                  {selectedBuyerIsRisk ? (
+                    <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-950/30 text-red-600 dark:text-red-400 flex items-center justify-center mx-auto text-xl animate-pulse">
+                      ⚠️
+                    </div>
+                  ) : (
+                    <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto text-xl">
+                      🤝
+                    </div>
+                  )}
+                  <h3 className="text-base font-extrabold text-zinc-900 dark:text-zinc-100">
+                    {selectedBuyerIsRisk ? "Peringatan Risiko Logistik" : "Konfirmasi Pencocokan Lahan"}
+                  </h3>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400">
                     Apakah Anda ingin mengonfirmasi kecocokan ini dengan **{selectedBuyerId}**? Status penawaran Anda akan dikirim ke WhatsApp Pembeli.
                   </p>
+                  {selectedBuyerIsRisk && (
+                    <div className="mt-3 p-3.5 bg-red-50 dark:bg-red-950/30 border border-red-200/50 dark:border-red-900/30 rounded-2xl text-left space-y-1.5 animate-fadeIn">
+                      <span className="text-xs font-bold text-red-700 dark:text-red-400 block flex items-center gap-1">
+                        ⚠️ Jarak Pengiriman Berisiko Tinggi
+                      </span>
+                      <p className="text-[11px] text-red-600 dark:text-red-300 leading-relaxed font-medium">
+                        Estimasi waktu tempuh pengiriman melebihi sisa umur simpan (shelf life) komoditas Anda. Risiko tinggi terjadinya pembusukan atau penurunan kualitas hasil panen di perjalanan.
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex gap-3">
